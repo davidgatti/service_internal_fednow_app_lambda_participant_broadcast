@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Legal Notices
+
+The Federal Reserve Banks are providing this FedNow Service sample message for
+illustrative purposes only. Please refer to the FedNow Service Technical
+Specifications and FedNow Service ISO 20022 Implementation Guide for additional
+details on how to apply the sample message. The Reserve Banks provide no
+warranties, are not responsible for its accuracy or use within your
+environment, and disclaim all liability in connection with your use of this
+sample message. Use of the information in your applications is subject to your
+internal quality and security control processes.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+
+<FedNowIncoming xmlns="urn:fednow:incoming:v001">
+    <FedNowIncomingMessage>
+        <FedNowRetrievalRequest>
+            <AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+                <Fr>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>111111111</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </Fr>
+                <To>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>021150706</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </To>
+                <BizMsgIdr>20230605111111111MRSc1Step1MsgId</BizMsgIdr>
+                <MsgDefIdr>admi.006.001.01</MsgDefIdr>
+                <MktPrctc>
+                    <Regy>www2.swift.com/mystandards/#/group/Federal_Reserve_Financial_Services/FedNow_Service</Regy>
+                    <Id>frb.fednow.01</Id>
+                </MktPrctc>
+                <CreDt>2023-06-05T11:03:38-04:00</CreDt>
+            </AppHdr>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:admi.006.001.01">
+                <RsndReq>
+                    <MsgHdr>
+                        <MsgId>20230605111111111MRSc1Step1MsgId</MsgId>
+                        <CreDtTm>2023-06-05T11:03:38-04:00</CreDtTm>
+                    </MsgHdr>
+                    <RsndSchCrit>
+                        <BizDt>2023-06-04</BizDt>
+                        <OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>
+                        <FileRef>20230604111111111Sc01Step1MsgId</FileRef>
+                        <Rcpt>
+                            <Id>
+                                <PrtryId>
+                                    <Id>111111111</Id>
+                                    <Issr>NA</Issr>
+                                </PrtryId>
+                            </Id>
+                        </Rcpt>
+                    </RsndSchCrit>
+                </RsndReq>
+            </Document>
+        </FedNowRetrievalRequest>
+    </FedNowIncomingMessage>
+</FedNowIncoming>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Legal Notices
+
+The Federal Reserve Banks are providing this FedNow Service sample message for
+illustrative purposes only. Please refer to the FedNow Service Technical
+Specifications and FedNow Service ISO 20022 Implementation Guide for additional
+details on how to apply the sample message. The Reserve Banks provide no
+warranties, are not responsible for its accuracy or use within your
+environment, and disclaim all liability in connection with your use of this
+sample message. Use of the information in your applications is subject to your
+internal quality and security control processes.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+
+<FedNowIncoming xmlns="urn:fednow:incoming:v001">
+    <FedNowIncomingMessage>
+        <FedNowRequestForPayment>
+            <AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+                <Fr>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>111111111</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </Fr>
+                <To>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>021150706</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </To>
+                <BizMsgIdr>20230714111111111RFPSc01Step1MsgId</BizMsgIdr>
+                <MsgDefIdr>pain.013.001.07</MsgDefIdr>
+                <MktPrctc>
+                    <Regy>www2.swift.com/mystandards/#/group/Federal_Reserve_Financial_Services/FedNow_Service</Regy>
+                    <Id>frb.fednow.01</Id>
+                </MktPrctc>
+                <CreDt>2023-07-14T09:17:49-04:00</CreDt>
+            </AppHdr>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.013.001.07">
+                <CdtrPmtActvtnReq>
+                    <GrpHdr>
+                        <MsgId>20230714111111111RFPSc01Step1MsgId</MsgId>
+                        <CreDtTm>2023-07-14T09:17:49-04:00</CreDtTm>
+                        <NbOfTxs>1</NbOfTxs>
+                        <InitgPty>
+                            <Nm>Corporation A</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>RFPSc01Step1PaymentInfoId001</PmtInfId>
+                        <PmtMtd>TRF</PmtMtd>
+                        <ReqdExctnDt>
+                            <Dt>2023-08-01</Dt>
+                        </ReqdExctnDt>
+                        <XpryDt>
+                            <Dt>2023-08-15</Dt>
+                        </XpryDt>
+                        <Dbtr>
+                            <Nm>Individual B</Nm>
+                            <PstlAdr>
+                                <StrtNm>Main Street</StrtNm>
+                                <BldgNb>500</BldgNb>
+                                <PstCd>60515</PstCd>
+                                <TwnNm>Hilltop Grove</TwnNm>
+                                <CtrySubDvsn>UT</CtrySubDvsn>
+                                <Ctry>US</Ctry>
+                            </PstlAdr>
+                        </Dbtr>
+                        <DbtrAcct>
+                            <Id>
+                                <Othr>
+                                    <Id>987654321</Id>
+                                </Othr>
+                            </Id>
+                        </DbtrAcct>
+                        <DbtrAgt>
+                            <FinInstnId>
+                                <ClrSysMmbId>
+                                    <ClrSysId>
+                                        <Cd>USABA</Cd>
+                                    </ClrSysId>
+                                    <MmbId>222222222</MmbId>
+                                </ClrSysMmbId>
+                            </FinInstnId>
+                        </DbtrAgt>
+                        <CdtTrfTx>
+                            <PmtId>
+                                <EndToEndId>RFPSc01Step1EndToEndId001</EndToEndId>
+                            </PmtId>
+                            <PmtTpInf>
+                                <LclInstrm>
+                                    <Prtry>FDNA</Prtry>
+                                </LclInstrm>
+                                <CtgyPurp>
+                                    <Prtry>CONS</Prtry>
+                                </CtgyPurp>
+                            </PmtTpInf>
+                            <Amt>
+                                <InstdAmt Ccy="USD">50000</InstdAmt>
+                            </Amt>
+                            <ChrgBr>SLEV</ChrgBr>
+                            <CdtrAgt>
+                                <FinInstnId>
+                                    <ClrSysMmbId>
+                                        <ClrSysId>
+                                            <Cd>USABA</Cd>
+                                        </ClrSysId>
+                                        <MmbId>111111111</MmbId>
+                                    </ClrSysMmbId>
+                                    <Nm>BANK A</Nm>
+                                </FinInstnId>
+                            </CdtrAgt>
+                            <Cdtr>
+                                <Nm>Corporation A</Nm>
+                                <PstlAdr>
+                                    <StrtNm>Fountain Avenue</StrtNm>
+                                    <BldgNb>339</BldgNb>
+                                    <Room>Suite D110</Room>
+                                    <PstCd>11011</PstCd>
+                                    <TwnNm>Fountain HIlls</TwnNm>
+                                    <CtrySubDvsn>NY</CtrySubDvsn>
+                                    <Ctry>US</Ctry>
+                                </PstlAdr>
+                            </Cdtr>
+                            <CdtrAcct>
+                                <Id>
+                                    <Othr>
+                                        <Id>1122334455</Id>
+                                    </Othr>
+                                </Id>
+                            </CdtrAcct>
+                            <RmtInf>
+                                <Strd>
+                                    <RfrdDocInf>
+                                        <Tp>
+                                            <CdOrPrtry>
+                                                <Cd>CINV</Cd>
+                                            </CdOrPrtry>
+                                        </Tp>
+                                        <Nb>INV12345</Nb>
+                                        <RltdDt>2023-07-14</RltdDt>
+                                    </RfrdDocInf>
+                                </Strd>
+                            </RmtInf>
+                        </CdtTrfTx>
+                    </PmtInf>
+                </CdtrPmtActvtnReq>
+            </Document>
+        </FedNowRequestForPayment>
+    </FedNowIncomingMessage>
+</FedNowIncoming>

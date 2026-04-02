@@ -1,0 +1,141 @@
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNowSM Pilot Drop-In Session:
+Message Signing and Key
+Management
+August 2022
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used without consent.
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+Anti-Trust Compliance
+• Pilot participants are expected to ensure that their participation and communications at the pilot
+engagements and related meetings do not violate antitrust laws.
+
+• This means that no activity or discussion at engagements or other related functions may be
+engaged in for the purpose of bringing about any understanding or agreement among participants
+to do any of the following: (a) raise, stabilize, or set future prices; (b) regulate future production
+levels among individual participants; (c) allocate geographic markets or customers; (d) encourage
+boycotts or seek to exclude specific participants; or (e) aid in creating improper monopolies.
+
+• In addition, participants should avoid discussing or revealing any individual participant’s
+competitively sensitive information, including any participant’s prices, discounts, costs, capacity,
+inventory, sales, future business plans, or bids for contracts.
+
+• Any questions regarding the meaning or applicability of this anti-trust statement, as well as any
+concerns regarding activities or discussions at engagements sessions or other FedNow meetings,
+should be promptly brought to the attention of the Federal Reserve Bank presenter of the meeting
+or working group session.
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used without consent.
+
+2
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+Confidentiality
+• Pilot participants are expected to ensure that their participation and communications at the pilot
+engagements, related meetings and in external press do not violate the confidentiality agreement
+signed as a prerequisite for participation in the pilot program.
+
+• Pilot participants have an obligation not to disclose the identity of other organizations within the
+group that may have chosen not to be disclosed publicly.
+
+• Pilot participants must refrain from using information (including contact list) from the pilot program
+to solicit business from, or market products and services to other participants.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used without consent.
+
+3
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+Message Signing and
+Key Management
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used without consent.
+
+4
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+Message Signing and Key Management
+• Messages exchanged with participants will be cryptographically signed:
+• Digitally signing messages has several benefits, mainly providing a non-repudiation
+means to reduce fraudulent messaging.
+• Participants will use key pairs to sign messages (not relying on X.509 certificates or
+certificate authorities for message signatures):
+• Participants will create their own key pairs (public and private) with specifications
+defined by the FedNow Service.
+• Participants will provide the public key to the FedNow Service over a secure channel.
+• Participants will be able to programmatically manage keys using APIs provided by the
+FedNow Service.
+• Participants will sign all messages with their private key and provide a reference to the
+FedNow Service of which key was used.
+• Message signing keys are valid up to a year.
+• Participants are encouraged to have multiple, active keys with overlapping time periods.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used without consent.
+
+5
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+Message Signing: Process
+• Creating Keys
+• Onboarding First Key
+
+• Signing Messages
+• Key Exchange Process
+▪ Adding Keys
+▪ Revoking Keys
+▪ Getting FedNow Keys
+➢ Automated
+➢ Staging
+• Verifying Messages
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used without consent.
+
+6
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+Message Signing: Sign and Send
+• Participant creates the message to be sent to the
+FedNow Service.
+• Participant signs the byte stream of their message
+with their private key.
+• Participant places the message on the queue with
+the following protocol headers:
+▪
+▪
+▪
+
+fnsigid: The ID of the key that was previously
+exchanged with FedNow
+fnsig: The output of the signature operation
+fnsigspec: The message digest/hashing used
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used without consent.
+
+7
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+Message Signing Summary
+• The FedNow Service uses Simple Key Pairs (not certificates) to sign
+messages.
+• Participants utilize the FedNow interface to initialize their first key.
+• Participants can then use MQ messaging to add/revoke keys.
+• Keys have a maximum lifespan of 365 days.
+• The FedNow Service will regularly rotate its own keys and notify
+participants through an MQ message.
+• Participants can request to see all FedNow Keys through the FedNow
+interface and through MQ calls at any time.
+• All FedNow messages to participants will be signed.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used without consent.
+
+8
+
+

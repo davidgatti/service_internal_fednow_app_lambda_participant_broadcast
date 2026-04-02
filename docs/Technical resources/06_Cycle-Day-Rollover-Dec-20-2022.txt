@@ -1,0 +1,84 @@
+INTERNAL FR/OFFICIAL USE // FRSONLY
+
+FedNow Service Cycle
+Day Rollover
+
+© 2022 Federal Reserve Banks. Pilot Confidential/FedNow Confidential Information. Materials are not to be used without consent.
+
+INTERNAL FR/OFFICIAL USE // FRSONLY
+
+Cycle Day Rollover
+
+© 2022 Federal Reserve Banks. Pilot Confidential/FedNow Confidential Information. Materials are not to be used without consent.
+
+2
+
+INTERNAL FR/OFFICIAL USE // FRSONLY
+
+FedNow Service Cycle Date Rollover
+
+© 2022 Federal Reserve Banks. Pilot Confidential/FedNow Confidential Information. Materials are not to be used without consent.
+
+3
+
+INTERNAL FR/OFFICIAL USE // FRSONLY
+
+FedNow Service ISO Fields
+
+2023-06-01T19:01:00-5:00
+2023-06-02
+
+© 2022 Federal Reserve Banks. Pilot Confidential/FedNow Confidential Information. Materials are not to be used without consent.
+
+4
+
+INTERNAL FR/OFFICIAL USE // FRSONLY
+
+FedNow Service EOD Activities
+Calendar Date: June 1
+Cycle Date: June 1
+
+Cycle day rollover ~ 7 PM ET
+EOD Activity Totals report ~ 7:30 PM
+ET
+Accounting EOD cycle~ 8 PM ET
+Accounting Reconcilement Reports
+(Statement of Account, FIRD, and
+SASF) ~ 8:30 / 9 PM ET
+EOD Activity Details report ~ 9 PM
+ET
+FedNow Service funds-transfer
+business day
+
+The funds-transfer business day for the FedNow Service as detailed in the FedNow Service Schedule published by the Reserve Banks on the
+FRBservices.org® website. Also referred to as “FedNow Service cycle day” or “cycle day.”
+
+Accounting End-of-Day (EOD)
+Cycle (~8:00 pm ET)
+
+Timing for when Federal Reserve Accounting has received all debit and credit transactions posting to an institution’s account from all business
+lines within the Federal Reserve, to determine the institution’s closing balance for the given cycle date:
+• Federal Reserve Accounting will calculate the closing balance (which is also the opening balance for the next cycle date).
+• Federal Reserve Accounting will generate the daily Statement of Account & Accounting data files (FIRD and SASF).
+
+Provisional Balance
+
+A provisional balance is provided when FedNow Service/Fedwire Funds have rolled into the new cycle day, but before Federal Reserve
+Accounting has completed its end of day cycle process:
+• Once Federal Reserve Accounting has calculated the final balance, it will replace the provisional balance.
+• FedNow activity, included in the balance, is considered final.
+
+© 2022 Federal Reserve Banks. Pilot Confidential/FedNow Confidential Information. Materials are not to be used without consent.
+
+5
+
+INTERNAL FR/OFFICIAL USE // FRSONLY
+
+The financial services logo, “FedNow,” and “FRBservices.org” are service marks of the Federal Reserve Banks. A list of marks
+related to financial services products that are offered to financial institutions by the Federal Reserve Banks is available at
+FRBservices.org. “ISO” is a registered service mark of the International Organization for Standardization. “MyStandards” is a
+registered mark of SWIFT. Marks of any other third parties identified in this document are owned by their respective holders.
+
+6
+
+

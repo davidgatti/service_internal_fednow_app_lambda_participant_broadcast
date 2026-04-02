@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Legal Notices
+
+The Federal Reserve Banks are providing this FedNow Service sample message for
+illustrative purposes only. Please refer to the FedNow Service Technical
+Specifications and FedNow Service ISO 20022 Implementation Guide for additional
+details on how to apply the sample message. The Reserve Banks provide no
+warranties, are not responsible for its accuracy or use within your
+environment, and disclaim all liability in connection with your use of this
+sample message. Use of the information in your applications is subject to your
+internal quality and security control processes.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+
+<FedNowIncoming xmlns="urn:fednow:incoming:v001">
+    <FedNowIncomingMessage>
+        <FedNowInformationRequest>
+            <AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+                <Fr>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>111111111</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </Fr>
+                <To>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>021150706</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </To>
+                <BizMsgIdr>20230727111111111RFISc1Step2MsgId</BizMsgIdr>
+                <MsgDefIdr>camt.026.001.07</MsgDefIdr>
+                <MktPrctc>
+                    <Regy>www2.swift.com/mystandards/#/group/Federal_Reserve_Financial_Services/FedNow_Service</Regy>
+                    <Id>frb.fednow.01</Id>
+                </MktPrctc>
+                <CreDt>2023-07-27T10:18:02-05:00</CreDt>
+            </AppHdr>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.026.001.07">
+                <UblToApply>
+                    <Assgnmt>
+                        <Id>20230727111111111RFISc1Step2MsgId</Id>
+                        <Assgnr>
+                            <Agt>
+                                <FinInstnId>
+                                    <ClrSysMmbId>
+                                        <ClrSysId>
+                                            <Cd>USABA</Cd>
+                                        </ClrSysId>
+                                        <MmbId>111111111</MmbId>
+                                    </ClrSysMmbId>
+                                </FinInstnId>
+                            </Agt>
+                        </Assgnr>
+                        <Assgne>
+                            <Agt>
+                                <FinInstnId>
+                                    <ClrSysMmbId>
+                                        <ClrSysId>
+                                            <Cd>USABA</Cd>
+                                        </ClrSysId>
+                                        <MmbId>222222222</MmbId>
+                                    </ClrSysMmbId>
+                                </FinInstnId>
+                            </Agt>
+                        </Assgne>
+                        <CreDtTm>2023-07-27T10:18:02-05:00</CreDtTm>
+                    </Assgnmt>
+                    <Case>
+                        <Id>RFI_pacs.008_Case017</Id>
+                        <Cretr>
+                            <Pty>
+                                <Nm>Corporation B</Nm>
+                                <CtctDtls>
+                                    <Nm>Investigation Manager</Nm>
+                                    <PhneNb>+1-555-600-7000</PhneNb>
+                                    <EmailAdr>support@corporationB.com</EmailAdr>
+                                    <PrefrdMtd>PHON</PrefrdMtd>
+                                </CtctDtls>
+                            </Pty>
+                        </Cretr>
+                    </Case>
+                    <Undrlyg>
+                        <IntrBk>
+                            <OrgnlGrpInf>
+                                <OrgnlMsgId>20230726222222222RFISc1Step1MsgId</OrgnlMsgId>
+                                <OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>
+                                <OrgnlCreDtTm>2023-07-26T11:35:23-05:00</OrgnlCreDtTm>
+                            </OrgnlGrpInf>
+                            <OrgnlInstrId>RFISc1Step1InstrId001</OrgnlInstrId>
+                            <OrgnlEndToEndId>RFISc1Step1EtoEId001</OrgnlEndToEndId>
+                            <OrgnlTxId>RFISc1Step1TransId001</OrgnlTxId>
+                            <OrgnlIntrBkSttlmAmt Ccy="USD">45021.75</OrgnlIntrBkSttlmAmt>
+                            <OrgnlIntrBkSttlmDt>2023-07-26</OrgnlIntrBkSttlmDt>
+                        </IntrBk>
+                    </Undrlyg>
+                    <Justfn>
+                        <MssngOrIncrrctInf>
+                            <IncrrctInf>
+                                <Cd>IN06</Cd>
+                                <AddtlIncrrctInf>The amount of the transfer is incorrect. Amount agreed after discount was $49,021.75. Please advise</AddtlIncrrctInf>
+                            </IncrrctInf>
+                        </MssngOrIncrrctInf>
+                    </Justfn>
+                </UblToApply>
+            </Document>
+        </FedNowInformationRequest>
+    </FedNowIncomingMessage>
+</FedNowIncoming>

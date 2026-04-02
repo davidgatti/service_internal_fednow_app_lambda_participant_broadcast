@@ -1,0 +1,4189 @@
+INTERNAL FR/OFFICIAL
+FR/OFFICIAL USE
+USE //
+// EXTERNAL
+SECURE
+EXTERNAL
+EXTERNAL
+INTERNAL
+
+FedNow® Service
+Technical Specifications
+February 2025
+Version 1.12
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or
+shared without consent.
+The FedNow® Service Technical Specifications provide technical details about the FedNow Service.
+The Federal Reserve Banks may change these Technical Specifications at any time and will endeavor to
+provide at least 30 days’ notice for material changes. The FedNow Service will be governed by applicable
+law and the terms of an Operating Circular issued by each of the Federal Reserve Banks. Other Federal
+Reserve Banks Operating Circulars applicable to the Federal Reserve Banks provision of financial
+services, including Operating Circulars that govern the account relationships and electronic connection
+with the Participants, will also apply. If the Technical Specifications conflict with Federal Reserve Bank
+Operating Circulars governing the FedNow Service, Operating Circulars take precedence.
+To the extent a FedNow Participant uses a Service Provider(s), requirements in the Technical
+Specifications otherwise applicable to FedNow Service Participants also apply to the Service Provider
+when it performs functions as an agent on behalf of a FedNow Service Participant.
+Programming code in this guide is for illustrative purposes. The Federal Reserve Banks provide no
+warranties with respect to such code, are not responsible for its accuracy or use within your environment
+and disclaim all liability in connection with its use. At a minimum, use of the code in your environment is
+subject to your internal quality and security control processes.
+The Financial Services logo, “FedNow” and “FedLine” are service marks of the Federal Reserve Banks.
+A list of marks related to financial services products that are offered to financial institutions by the Federal
+Reserve Banks is available at FRBservices.org.
+Products and company names of third parties identified in this document are trademarks of their
+respective holders. Use of them does not imply any affiliation with or endorsement by them.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 2
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Table of Contents
+Introduction ................................................................................................................................................. 6
+Overview of FedNow Service Functionality ............................................................................................. 7
+FedNow Service Features......................................................................................................................... 7
+FedNow Service Sample Message Flow: Customer Credit Transfer ....................................................... 8
+FedNow Service ISO 20022 Messages .................................................................................................. 10
+FedNow Service Technical Overview...................................................................................................... 12
+FedNow Service Network Architecture ................................................................................................... 12
+FedNow Service Profiles and Components ............................................................................................ 14
+Participant Profile ................................................................................................................................ 14
+Authorized Connection Profile............................................................................................................. 14
+Connection Party ................................................................................................................................. 14
+Connection Point ................................................................................................................................. 14
+MQ Overview........................................................................................................................................... 15
+How the FedNow Service Works with MQ .......................................................................................... 15
+Getting Started with MQ .......................................................................................................................... 16
+Queue Configuration ............................................................................................................................... 18
+OUT Queues ....................................................................................................................................... 18
+IN Queues ........................................................................................................................................... 19
+Queue Expiration & Depth .................................................................................................................. 24
+Application Design Considerations ......................................................................................................... 25
+Resiliency ................................................................................................................................................ 26
+Connection Point Affinity ..................................................................................................................... 26
+Connection Point Examples ................................................................................................................ 27
+Security Protocols ................................................................................................................................... 27
+FedNow Service Messages ...................................................................................................................... 28
+Message Components ............................................................................................................................ 28
+XML Message Structure.......................................................................................................................... 29
+Sample Incoming pacs.008 Message Payload (to the FedNow Service) ........................................... 29
+Sample Outgoing pacs.008 Message Payload (from the FedNow Service)....................................... 30
+FedNow Service Schemas ...................................................................................................................... 31
+Preparing to Send and Receive Messages......................................................................................... 31
+FedNow XML Schema Quick Start Package ...................................................................................... 31
+Additional Schema Resources ............................................................................................................ 32
+Protocol Headers .................................................................................................................................... 32
+Duplicate Messages from the FedNow Service ...................................................................................... 34
+Special Character Handling .................................................................................................................... 34
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 3
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+FedNow Service Key Management and Exchange ................................................................................ 35
+Generating Participant Public and Private Key Pairs .............................................................................. 35
+Key Pair Specifications ....................................................................................................................... 35
+Generate Public and Private Key Pairs Using OpenSSL .................................................................... 36
+Generate Public and Private Key Pairs Using Java ............................................................................ 37
+Calculating a Participant Public Key Fingerprint ..................................................................................... 37
+Calculate a Public Key Fingerprint Using OpenSSL ........................................................................... 37
+Calculate a Public Key Fingerprint Using Java ................................................................................... 38
+Exchanging Participant Keys with the FedNow Service ......................................................................... 38
+Establish an Initial Public Key with the FedNow Interface .................................................................. 38
+Managing Participant Keys via IBM MQ ............................................................................................. 39
+Obtaining FedNow Service Public Keys ................................................................................................. 41
+FedNow Service Public Key Rotation ................................................................................................. 41
+Signing and Verifying FedNow Service Messages ................................................................................ 42
+Sign Messages to Send to the FedNow Service..................................................................................... 42
+Sign Message Using Java................................................................................................................... 43
+Verify Messages Sent from the FedNow Service ................................................................................... 43
+Verify Message Using Java................................................................................................................. 43
+FedNow REST APIs................................................................................................................................... 44
+Getting started ......................................................................................................................................... 44
+Signing API Requests ............................................................................................................................. 44
+Prerequisites ....................................................................................................................................... 45
+1. Generate a SHA-512 Hash of the HTTP Message Body................................................................ 45
+2. Create Message Signature ............................................................................................................. 45
+HTTP Message Signature Example .................................................................................................... 47
+Verifying API Responses ........................................................................................................................ 48
+1. Validate the Content Digest ............................................................................................................ 48
+2. Validate the Message Signature ..................................................................................................... 49
+Appendix A: Configuring the MQ Client ................................................................................................. 53
+Requirements and Support Documentation ............................................................................................ 53
+Client Configuration File .......................................................................................................................... 54
+Connection Pooling ................................................................................................................................. 54
+TLS Version and Ciphers ........................................................................................................................ 54
+Client (X.509) Certificate and Trust Chain .............................................................................................. 55
+Note on MDBs and Activation Specifications .......................................................................................... 55
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 4
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Appendix B: Sample Signed Messages .................................................................................................. 56
+Sample Participant Key Pair ................................................................................................................... 56
+Sample Participant Private Key........................................................................................................... 56
+Sample Participant Public Key ............................................................................................................ 57
+Sample Protocol Header Values for pacs.008 and pacs.002 Messages ................................................ 57
+Sample FedNow Service Messages ....................................................................................................... 58
+Appendix C: Error Codes and Descriptions ........................................................................................... 64
+Revision History ........................................................................................................................................ 71
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 5
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Introduction
+This document provides technical details of the design of the FedNow® Service. It is intended to be used
+by Participants or Service Provider(s) who are developing their systems to send and receive messages
+over the FedNow Service.
+The guide should be used with the documents listed below to provide a comprehensive understanding of
+the FedNow Service and to assist Participants in developing their messaging systems to successfully
+integrate with the FedNow Service.
+Resource
+
+Purpose
+
+FedNow Service Operating Circular 8 (and
+other applicable Operating Circulars)
+
+Governs the terms of the FedNow Service and other related
+terms.
+
+FedNow Service Operating Procedures
+
+Details about the FedNow Service including expectations,
+requirements and guidance to be followed by FedNow
+Participants.
+
+FedNow Service ISO® 20022 Message
+Specifications
+
+ISO 20022 message implementation guidelines for the FedNow
+Service, the FedNow Service ISO 20022 Implementation Guide
+and ISO 20022 Message Flows.
+This must be used in combination with the FedNow Service
+Technical Specifications document to execute message
+processing to and from the FedNow Service.
+
+FedNow Service Technical Specifications
+(this document)
+
+Provides technical details required for application development
+with the FedNow Service.
+This must be used in combination with the FedNow Service ISO
+20022 Message Specifications document to execute message
+processing with the FedNow Service.
+
+FedNow Service OpenAPI Specifications
+(located on the DevRel resource)
+
+Provides technical details required for application development
+using REST APIs with the FedNow Service.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 6
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Overview of FedNow Service Functionality
+The FedNow Service is an interbank 24x7x365 real-time gross settlement (RTGS) service with integrated
+clearing functionality. The service enables financial institutions (FIs) to deliver end-to-end instant
+payments to their customers.
+Like other payment and settlement services offered by the Federal Reserve Banks, the FedNow Service
+settles obligations between financial institutions through debits and credits to balances in their or their
+correspondent’s master accounts with the Federal Reserve Banks. With the FedNow Service, end
+customers can send and receive payments any time, any day, anywhere, and have full access to those
+funds immediately.
+
+This section describes:
+•
+
+FedNow Service Features
+
+•
+
+FedNow Service Sample Message Flow
+
+•
+
+FedNow Service ISO 20022 Messages
+
+FedNow Service Features
+Feature
+
+Description
+
+Service Level
+
+Instant payments, 24x7x365 availability.
+Core clearing and settlement capabilities with credit transfers completing in
+seconds.
+A FedNow interface via FedLine® Solutions for participating FIs or their Service
+Providers to support reports and queries and manage configurations.
+Access to balance information around the clock — activity reports available on
+demand or end of day.
+
+Flexibility
+
+FIs can settle using their own master account or a correspondent’s master
+account.
+Configurable features for each routing transit number (RTN) enabled, such as the
+ability to send and receive customer transfers, receive requests for payments,
+support FI liquidity management transfers, and support settlement services for
+other FIs.
+An FI can connect to the FedNow Service through a FedLine Solution directly or
+through a Service Provider as its agent.
+Support for a variety of credit transfer use cases.
+
+Security and Risk Mitigation
+
+Encryption of all data flows.
+Features to support message integrity and data security, including message
+signing.
+Tools to help FIs combat fraud, such as a transaction value limit and the ability to
+reject transactions for specific accounts.
+Network-level maximum transaction value limits, which may be adjusted over time
+(FIs may configure transaction limits that are equal to or below the network limit).
+
+Efficiency and Transparency
+
+•
+
+•
+•
+
+Rich data supported within ISO 20022 messages (for example, the option to
+include remittance information in payment messages and request for
+payment messages).
+FI-to-FI liquidity management transfers in support of instant payments.
+Use of the widely accepted ISO 20022 standard and other industry best
+practices to support interoperability.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 7
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Feature
+
+Description
+•
+
+Daily participant list (including RTNs) notifying of changes to Participant
+availability to receive credit transfers.
+
+FedNow Service Sample Message Flow: Customer Credit
+Transfer
+The FedNow Service enables transactions to clear and settle in real time, allowing financial institutions
+(FIs) of all sizes to enable their customers to instantly send and receive money.
+Figure 1 provides a step-by-step overview of the FedNow Service payment process in which the Federal
+Reserve Banks settle and execute and the Receiver FI accepts a customer payment message.
+For this sample flow, the Sender FI or Receiver FI may either send and receive messages to and from the
+service or designate a Service Provider to act as its agent (e.g., a processor, core solution or other
+payment hub) to perform those functions on its behalf. A participating FI may settle using its own Federal
+Reserve Bank master account or it may designate a correspondent for that purpose.
+Refer to the FedNow Service Operating Procedures for additional details on the customer credit transfer
+flow, participation types and settlement.
+
+Figure 1. FedNow Service Payment Process – Message Flow
+Note: Additional information on the messaging workflows supported by the FedNow Service can be found
+in the FedNow Service ISO 20022 Message Flows guide on the SWIFT MyStandards site.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 8
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+The following table describes each numbered step in Figure 1.
+Step
+
+Description
+
+1
+
+Initiation: The sender (an individual or business) initiates a payment with their FI through an end-user
+interface outside of the FedNow Service. The FedNow Service Sender FI is responsible for validating the
+payment according to its internal processes and requirements.
+
+2
+
+The Sender FI submits a payment message (ISO message pacs.008) to the FedNow Service.
+
+3
+
+The FedNow Service validates the payment message — for example, by verifying that the message meets
+proper format specifications and complies with applicable controls.
+
+4*
+
+The FedNow Service sends the contents of the payment message to the recipient’s FI to seek
+confirmation that the Receiver FI intends to accept the payment message. At this point, the Receiver FI
+determines how to handle the message (accept, reject or accept without posting (ACWP)). Among other
+things, the Receiver FI should use this step to determine whether it maintains an account for the recipient
+identified in the contents of the payment message.
+
+5*
+
+Confirmation: In this example flow, the Receiver FI sends a positive response of “accept” to the FedNow
+Service, confirming it intends to accept the payment message.
+
+6
+
+The FedNow Service settles the payment, debiting and crediting the designated master accounts of the
+Sender FI and Receiver FI (or of their correspondents), respectively. Steps 2-6 are expected to complete
+within a few seconds but will take no more than 20 seconds.
+
+7
+
+The FedNow Service sends an advice to the Receiver FI and an acknowledgement to the Sender FI,
+executing the payment order and notifying each that the Federal Reserve Banks settled the payment
+message. Correspondents enabled within a FedNow profile may choose to receive a notification of
+debit/credit entries (ISO message camt.054).
+The Receiver FI matches the advice of credit to the pacs.008 ISO message and then makes funds
+available to the recipient.
+
+8
+
+In communicating with the recipient, the Receiver FI should notify its customer immediately following
+receipt of an advice and may use any reasonable means of communication consistent with their customer
+agreements, including standard channels for which the recipient is enabled.
+As a best practice, upon receipt of an acknowledgment (pacs.002), the Sender FI should notify the end
+customer of a successful or unsuccessful transaction.
+
+9
+
+Confirmation of posting: In general, the Receiver FI has the option of sending a message through the
+FedNow Service to the Sender FI indicating that the payment has been posted to the recipient’s account.
+If the Receiver FI sends a confirmation of posting message through the service, the Sender FI should
+notify its customer that the funds have been made available to the recipient.
+
+10
+
+The FedNow Service limits processing of messages to within 20 seconds and settles within this set
+amount of time or not at all. While the Federal Reserve Banks expect most payment messages to settle in
+a few seconds, well below the maximum allowable limit, the payment timeout clock sets expectations for
+FIs that transactions submitted to the service are settled or rejected almost immediately.
+
+*Steps 4 and 5 are intended to reduce the number of misdirected payments and resulting exception cases that can occur in
+high-volume systems.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 9
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+FedNow Service ISO 20022 Messages
+The following table summarizes each message supported by the FedNow Service and its business
+function. More detailed information on FedNow Service ISO 20022 messaging can be referenced in the
+FedNow Service ISO 20022 Implementation Guide.
+Message Identifier
+
+FedNow Service Business Function
+
+head.001.001.02
+
+Business Application Header1
+
+pacs.008.001.08
+
+Customer Credit Transfer
+
+pacs.009.001.08
+
+Financial Institution Credit Transfer
+
+pacs.004.001.10
+
+Payment Return
+
+pacs.002.001.10
+
+FedNow Payment Status
+
+pacs.002.001.10
+
+Participant Payment Status
+
+pacs.028.001.03
+
+Payment Status Request
+
+camt.056.001.08
+
+Return Request
+
+camt.029.001.09
+
+Return Request Response
+
+pain.013.001.07
+
+Request for Payment
+
+pain.014.001.07
+
+Request for Payment Response
+
+camt.055.001.09
+
+Request for Payment Cancellation Request
+
+camt.029.001.09
+
+Request for Payment Cancellation Request Response
+
+camt.026.001.07
+
+Information Request
+
+camt.029.001.09
+
+Information Request Response
+
+camt.028.001.09
+
+Additional Payment Information
+
+admi.002.001.01
+
+Message Reject
+
+admi.007.001.01
+
+Receipt Acknowledgement
+
+admi.004.001.02
+
+FedNow Broadcast2
+
+admi.004.001.02
+
+Participant Broadcast
+
+1
+
+A Business Application Header (BAH) is required for all messages sent through the FedNow Service. Refer to the FedNow
+Service ISO 20022 Implementation Guide for more information about the Business Application Header.
+2
+
+If the FedNow Service broadcast message functionality is unavailable at any time, it is possible for broadcast messages to be sent
+out of sequence. In general, it is considered a best practice for Participants to note the time stamp of broadcast messages to take
+any action necessary.
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 10
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Message Identifier
+
+FedNow Service Business Function
+
+admi.011.001.01
+
+FedNow System Response
+
+admi.998.001.02
+
+FedNow Participant File
+
+camt.060.001.05
+
+Account Reporting Request
+
+camt.052.001.08
+
+Account Balance Report
+
+camt.052.001.08
+
+Account Activity Totals Report
+
+camt.052.001.08
+
+Account Activity Details Report
+
+camt.054.001.08
+
+Account Debit Credit Notification
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 11
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+FedNow Service Technical Overview
+This section provides a technical overview of the FedNow Service, including key information about the
+architecture and components that comprise the system. This is valuable information for financial
+institutions to understand as they assess and plan for adoption of the service.
+
+This section describes:
+•
+
+FedNow Service Network Architecture
+
+•
+
+FedNow Service Profiles and Components
+
+•
+
+MQ Overview
+
+•
+
+Getting Started with MQ
+
+•
+
+Queue Configuration
+
+•
+
+Application Design Considerations
+
+•
+
+Resiliency Considerations
+
+•
+
+Connection Point Affinity
+
+•
+
+Security Considerations
+
+FedNow Service Network Architecture
+The FedNow Service, like the other Federal Reserve payment systems, is accessible via communication
+channels provided by the Federal Reserve Banks’ FedLine Solutions. Access to the FedNow Service is
+available over a dedicated wide area network (WAN) or a virtual private network (VPN) connection over
+the internet.
+Participating financial institutions have various options to connect with the service — including connecting
+directly with Federal Reserve Bank Services using their own FedLine Solutions or connecting via a
+Service Provider.
+Participants exchange messages with the FedNow Service using an IBM® MQ client. Participants use an
+IBM MQ client library to connect remotely to FedNow MQ servers over the FedLine Solutions. The
+FedNow MQ environment operates as a single cluster across sites, allowing Participants to connect to a
+server at any site.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 12
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Figure 2. FedNow Service Technical Overview
+Participants can communicate with the FedNow Service as follows:
+•
+
+Application to application, unattended flow for payment and payment-related interactions, all
+Participant-to-Participant communications, and a small set of reporting and administrative
+functions.
+
+•
+
+User to application, using a web-based user interface provided by the FedNow Service, for
+various profile management and data access functions.
+
+Note: Payment initiation is NOT available through the FedNow interface.
+For the application-to-application flows, the Participant and the FedNow Service exchange messages with
+payloads predominantly inherited from ISO 20022. Additional technical details about the message formats
+and message signing can be found in:
+
+•
+
+FedNow Service Messages: This section helps implementers understand the FedNow Service
+messages and how the FedNow Service encapsulates standard ISO 20022 messages.
+
+•
+
+FedNow Service Key Management and Exchange: This section helps implementers design their
+system to securely communicate FedNow Service messages with integrity, authenticity and
+provide a basis for non-repudiation.
+
+For more information on connecting with the FedNow Service via FedLine Solutions, refer to the
+FedNow Service Guide to FedLine Connectivity, which can be found on FedNow Explorer.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 13
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+FedNow Service Profiles and Components
+To understand the messaging flows and connectivity requirements of the FedNow Service, it is important
+to first understand the design model elements. This section describes the model entities that form the
+participation and connectivity model.
+Refer to the FedNow Service Operating Procedures for more details about the terms in this section.
+
+Participant Profile
+A Participant Profile is required for each RTN a financial institution uses to send and/or receive payments
+and messaging through the FedNow Service, regardless of whether they connect to the FedNow Service
+directly or via Service Provider(s). Each RTN is associated to a single Participant Profile, and there can
+be multiple Participant Profiles per institution. The Participant Profile defines the settings and features in
+the FedNow Service that are enabled for each RTN.
+
+Authorized Connection Profile
+The Authorized Connection Profile (ACP) represents an entity (such as a financial institution or Service
+Provider), which establishes connectivity to the FedNow Service, enabling one or more Participants to
+access the application-to-application or user-to-application functions.
+
+Connection Party
+A Connection Party is a conceptual entity that owns connectivity to the FedNow Service and is authorized
+to send and receive messages, as well as log in to the FedNow interface.
+A Connection Party is mapped to one or more Participant Profiles. Each mapping carries specific
+permissions that control which functions the connection profile can execute on behalf of the Participant
+Profile.
+The Connection Party ID defaults to the RTN or Electronic Transaction Identifier (ETI) of the Participant or
+Service Provider. This identifier is carried in the To and From elements of the Business Application
+Header (BAH) of all ISO messages exchanged with the FedNow Service. A Connection Party also owns
+the endpoints (queues) used to exchange messages with the FedNow Service. If the Connection Party ID
+needs to be changed, contact the Support Center.
+
+Connection Point
+A Connection Point is a logical grouping of endpoints (queues) and is owned by a Connection Party. The
+Connection Point is intended to represent a site or location from which a Participant connects to the
+FedNow Service. Consequently, a Connection Party can own one or more Connection Points. A
+Connection Point holds a set of endpoints (queues) over which the Connection Party exchanges
+messages with the FedNow Service. Therefore, the identifier of the Connection Point
+(7-character ID assigned by the FedNow Service) is part of endpoint names.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 14
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+MQ Overview
+IBM MQ (messaging and queuing) is a solution that allows applications to communicate with each other
+in real-time by exchanging data across multiple platforms and environments. Messages are sent and
+received via queues, which allow applications to run independently (asynchronously).
+When a participant payment application wants to conduct a transaction with another application—in this
+case, the FedNow® Service—it creates an ISO 20022 compliant message and puts the message onto a
+queue. The queue may be on the same MQ queue manager or on other connected MQ queue managers.
+The queue manager works to reliably transfer the message from the originating queue manager to target
+queue managers.
+Applications do not communicate directly with each other; MQ queue managers do. Once the message is
+safely on a queue, the sending application is free to move on to other important transactions. The MQ
+messaging infrastructure optimizes message flow and application efficiency. Further, MQ supports
+applications that run in different frameworks, platforms, languages, clouds and locations and ensures
+streamlined communication for all applications, while remaining fully integrated.
+
+How the FedNow Service Works with MQ
+In order to communicate with the FedNow Service using IBM MQ, we support connectivity over
+FedLine connections (for more information, see FedLine Solutions). The FedNow Service supports
+asynchronous messaging in a point-to-point (application-to-application) flow as shown below.
+
+Figure 3. FedNow MQ Connectivity
+The FedNow Service hosts a cluster of IBM MQ queue managers where messaging resources such as
+queues are configured. The payment applications operated by participants (or their service providers)
+interact directly with FedNow MQ queue managers to exchange messages using an MQ client with an
+embedded MQ client library, which must be located on the server running the payment application.
+•
+
+MQ client. Enables payment applications to issue MQI calls to FedNow MQ queue managers.
+The MQ Client allows the application to put or get messages on or off queues. The MQ client also
+receives the output from the call and passes it back to the sending application.
+
+•
+
+MQ client library. Facilitates the remote connection to FedNow MQ servers and enables the
+exchange of data between applications, systems, services and files.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Each participant connects to the FedNow Service using dedicated queues hosted by the FedNow MQ
+queue managers. As shown above, each Connection Point is assigned an MQI channel on the FedNow
+MQ queue managers. The participant who owns the Connection Point connects to their designated MQI
+channel using a Client Channel Definition Table (CCDT) file. The CCDT file determines the channel
+definitions and authentication information used by client applications to connect to the queue manager.
+The CCDT file can be downloaded from the FedNow interface.
+Note: This document does not address the FedLine Solutions connection requirements to the Federal
+Reserve Banks and its payment systems. System architects should consider their internal system
+architecture and their business requirements when designing their FedNow Service clients. For
+questions related to FedLine Solutions connectivity for the FedNow Service, see FedLine Solutions.
+
+Getting Started with MQ
+This topic provides information to help you get started with IBM MQ. Before starting MQ application
+development or MQ client configuration tasks, we strongly recommend taking the time to familiarize
+yourself with important aspects of IBM MQ design and operation.
+The table below provides a recommended list of resources, along with links to information on the IBM
+site.
+Resource
+
+Description
+
+Read IBM MQ Fundamentals and watch the
+embedded videos.
+
+Learn about IBM MQ basics, such as messages, queues,
+channels and clusters. Watch embedded videos for further
+reinforcement of concepts presented by an IBM MQ developer.
+
+Read What is Messaging? to learn about key
+capabilities in typical messaging frameworks.
+
+Learn about messaging in the context of messaging systems and
+frameworks. Gain an understanding of Qualities of Service (QoS)
+options to inform decisions made by application designers for
+sending and receiving messages, including the value of message
+queueing and strategies to protect messages in transit and at rest.
+
+Read An Introduction to APIs and Messaging to
+learn about the benefits of using APIs versus
+messaging.
+
+Gain valuable insights into the characteristics of Application
+Programming Interfaces (APIs) and messaging to develop an
+understanding of the capabilities and benefits of each.
+
+Read Getting Started with Request-Response
+Messaging Applications to learn about
+enhancing applications to exchange messages
+asynchronously.
+
+A hands-on tutorial that walks you through configuring and
+running sample JMS request and response applications. You'll
+also learn how to set message expiration and application timeouts
+to minimize the effect of downstream application failures.
+
+Complete an IBM MQ Learning Path.
+
+In IBM MQ on AWS Cloud - Developer Essentials you'll learn how
+to deploy an IBM MQ queue manger optimized for the developers
+using Docker Compose. Then, you'll learn how to build messaging
+applications that are ready to deploy into the AWS Cloud.
+In IBM MQ Developer Essentials you'll learn how to develop
+applications with IBM MQ and create production-ready messaging
+solutions.
+
+Access IBM MQ Documentation for your MQ
+version and other valuable resources.
+
+Access the complete set of IBM MQ documentation for your
+product version. Review information about MQ features and
+related documentation, including quick reference links to valuable
+resources including IBM MQ system requirements, technical
+developer topics, IBM training and support, and join the IBM MQ
+community group for blogging and other valuable resources.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 16
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Resource
+
+Description
+
+Access IBM MQ Documentation and then select
+"IBM MQ Features and Downloads -> IBM MQ
+Product and Resource Downloads."
+
+The IBM MQ download page provides links to download all
+versions of the full IBM MQ product, fix packs, CSUs, and
+additional IBM MQ resources including resource adapters and
+clients.
+
+Access IBM MQ Resources.
+
+Contains quick reference information on the MQ life cycle, IBM
+MQ support portal and integration community. Access software
+life cycle announcements, alerts, bulletins and SupportPacs. Also
+contains an FAQ with links to additional resources.
+
+Read "Connection Pooling in IBM MQ Classes
+for Java."
+Access IBM MQ Resources and select the
+version of IBM MQ you are running. From the
+documentation main page for your version,
+search for "Connection Pooling in IBM MQ
+Classes for Java."
+
+Contains information about MQ classes for Java that allows spare
+connections to be pooled for reuse and provide substantial
+performance enhancements for applications and middleware that
+connect serially to arbitrary queue managers.
+
+ibm-messaging GitHub site
+
+The GitHub Community for IBM Messaging products. Contains
+over 100 repositories with samples for a wide variety of
+integrations to help you get started with IBM MQ.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 17
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Queue Configuration
+Queues used to communicate with the FedNow Service are hosted by the FedNow queue managers.
+FedNow queue managers impose a set of rules governing the configuration of queues.
+
+OUT Queues
+For queues delivering messages from Participants to the FedNow Service, the queue names and
+association to message types are fully prescribed by the FedNow Service.
+The naming pattern for queues carrying messages to the FedNow Service is:
+<connection point id>.OUT.<msg category>
+Note that OUT represents the direction of the message flow, which is outgoing from the perspective of the
+Participant.
+Category
+
+Queue
+
+Credit Transfer and
+Payment Return
+
+<conn point id>.OUT.CT
+
+Messages
+• Credit Transfer (pacs.008)
+• Payment Return (pacs.004)
+• Payment Status (pacs.002)
+
+Liquidity Management
+Transfer
+
+<conn point id>.OUT.LMT
+
+• LMT (pacs.009)
+
+Nonvalue Message
+
+<conn point id>.OUT.NV
+
+• Return Request (camt.056)
+• Return Request Response (camt.029)
+• Request for Payment (pain.013)
+• Request for Payment Response (pain.014)
+• Payment Status Request to Participant
+(pacs.028)
+
+• Request for Payment Cancellation Request
+(camt.055)
+
+• Request for Payment Cancellation Request
+Response (camt.029)
+
+• Information Request (camt.026)
+• Information Request Response (camt.029)
+• Additional Payment Information (camt.028)
+• Receipt Acknowledgement (admi.007)
+Administrative
+
+<conn point id>.OUT.ADM
+
+• Participant Broadcast (sign on/off and
+disconnect/reconnect) (admi.004)
+
+• Key management messages
+Reject
+
+<conn point id>.OUT.RJCT
+
+• Message Reject (admi.002)
+
+Ping
+
+<conn point id>.OUT.PING
+
+• Connectivity Ping (admi.004)
+
+Inquiry
+
+<conn point id>.OUT.INQ
+
+• Payment Status Request to FedNow Service
+(pacs.028)
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 18
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Category
+
+Queue
+
+Messages
+• Account Report Request (camt.060)
+•
+
+IN Queues
+Queues that deliver messages from the FedNow Service to Participants use a naming pattern that allows
+for customization by the Participant. Association of queue to message categories is determined by the
+Participant.
+The naming pattern for queues carrying messages from the FedNow Service to Participants is:
+<connection point id>.IN.<customer defined>
+IN represents the direction of the message flow, which is incoming from the perspective of the
+Participants. The last part of the name can be customized by the owning Participant. It can be up to
+15 characters long using a combination of alphanumeric symbols, periods or underscores, and must be
+unique within that Connection Point.
+Two types of queues carry messages from the FedNow Service:
+FedNow Service
+Replies
+
+FedNow Service reply queues carry replies to messages sent by the Participant.
+Messages on FedNow Service reply queues are either notifications of
+transactions where the Participant is on the receiving side, or broadcasts and
+reports sent by the FedNow Service to the Participant.
+
+Other Incoming
+Messages
+
+Other incoming message queues carry messages that are not replies.
+
+The Participant who owns a Connection Point needs to assign a FedNow Service reply queue for each
+queue delivering messages to the FedNow Service (each .OUT. queue) and assign queues to receive all
+other incoming message types they expect to receive.
+The FedNow Service groups all message types it supports into several message categories. Each
+message category can be assigned to one other incoming message queue.
+Note: Multiple message categories can be assigned to the same other incoming message queue, but the
+Participant must carefully consider the performance implications. See Queue Expiration & Depth.
+
+IN Queue Message Tables
+This section contains tables that describe every incoming message to the Participant from the FedNow
+Service for each type of queue. The following tables are provided:
+•
+
+Table 1: FedNow Service Reply Messages
+
+•
+
+Table 2A: Other Incoming Messages
+
+•
+
+Table 2B: Additional Other Incoming Messages
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 19
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Note: Table 2, Other Incoming Messages, has two parts: Table 2A and Table 2B. Both are relevant to all
+Participants and highlight additional considerations for Participants with multiple Connection
+Parties. Tables 2A and 2B provide the Connection Party and the IN queue for each ISO message
+sent to a Participant.
+
+Table 1. FedNow Service Reply Messages
+•
+
+For Participant Profiles with one Connection Party, all messages are sent to the single
+Connection Party.
+
+•
+
+For Participant Profiles with multiple Connection Parties, messages are sent to the Connection
+Party that is indicated in the Connection Party column.
+
+Example
+Using data from row one below, the Connection Party that initiated the Credit Transfer (pacs.008)
+receives the pacs.002 reply (acknowledgement to Sender FI) on the IN queue assigned as the FedNow
+Service reply queue for the OUT.CT queue.
+Table 1. FedNow Service Reply Messages
+Connection Party
+Initiated…
+
+Message Received by
+Participant
+
+IN Queue
+
+(in response to previously sent
+message)
+Credit Transfer or Return
+
+pacs.002 - FedNow Service
+rejection, acknowledgement to
+Sender FI
+
+IN queue assigned as FedNow Service
+reply for OUT.CT
+
+Liquidity Management Transfer
+
+pacs.002 - FedNow Service
+rejection, acknowledgement to
+Sender FI
+
+IN queue assigned as FedNow Service
+reply for OUT.LMT
+
+Nonvalue
+
+admi.007 - Receipt
+Acknowledgement from FedNow
+Service
+
+IN queue assigned as FedNow Service
+reply for OUT.NV
+
+Return Request
+
+camt.029 - Negative Return
+Request Response from FedNow
+Service
+
+IN queue assigned as FedNow Service
+reply for OUT.NV
+
+Request for Payment
+
+pain.014 - Negative Request for
+Payment Response from FedNow
+Service
+
+IN queue assigned as FedNow Service
+reply for OUT.NV
+
+Request for Payment
+Cancellation
+
+camt.029 - Negative Request for
+Payment Cancellation Request
+Response from FedNow Service
+
+IN queue assigned as FedNow Service
+reply for OUT.NV
+
+Participant Broadcast (PING)
+
+admi.011- FedNow System
+Response (in response to admi.004
+– PING)
+
+IN queue assigned as FedNow Service
+reply for OUT.PING
+
+Participant Broadcast (FPOF,
+FPON, FPCD, FPCR)
+
+admi.011- FedNow System
+Response (in response to admi.004
+– FPOF, FPON, FPCD, FPCR)
+
+IN queue assigned as FedNow Service
+reply for OUT.ADM
+
+Payment Status Request (to the
+FedNow Service)
+
+pacs.002 - Response to pacs.028
+sent to the FedNow Service
+
+IN queue assigned as FedNow Service
+reply for OUT.INQ
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 20
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Connection Party
+Initiated…
+
+Message Received by
+Participant
+
+IN Queue
+
+(in response to previously sent
+message)
+Report Request
+
+camt.052 - Account Activity Totals
+Report (response to report request
+camt.060)
+
+IN queue assigned as FedNow Service
+reply for OUT.INQ
+
+Report Request
+
+camt.052 - Account Activity Details
+Report (response to report request
+camt.060)
+
+IN queue assigned as FedNow Service
+reply for OUT.INQ
+
+Report Request
+
+camt.052 - Account Balance
+Inquiry (response to report request
+camt.060)
+
+IN queue assigned as FedNow Service
+reply for OUT.INQ
+
+Message
+
+admi.002 - Message Reject
+
+IN queue assigned as FedNow Service
+reply for OUT.XXX (sent to the
+associated reply queue)
+
+Key Management Message
+
+Key management message
+response
+
+IN queue assigned as FedNow Service
+reply for OUT.ADM.
+
+Table 2A. Other Incoming Messages
+•
+
+For Participant Profiles with one Connection Party, all messages are sent to the single
+Connection Party.
+
+•
+
+For Participant Profiles with multiple Connection Parties, messages are sent to the Connection
+Party that is indicated in the Connection Party column.
+
+Note: Since all messages are required to be assigned to an IN queue regardless of participant type,
+Participants may receive messages beyond the scope of their participation type. In this case,
+Participants are not required to respond.
+
+Example
+Using data from row one below, the Credit Transfer (pacs.008) is sent to the Connection Party
+permissioned to Receive CT/ Return/Nonvalue messages on the IN queue assigned the CT category.
+Table 2A. Other Incoming Messages
+Message Received by
+Participant
+
+Connection Party
+
+IN Queue
+
+pacs.008 - Credit Transfer
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the CT category
+
+pacs.004 - Payment Return
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the CT category
+
+pacs.002 - Payment Status
+(advice to the Receiver FI)
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the CT category
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 21
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Message Received by
+Participant
+
+Connection Party
+
+IN Queue
+
+pacs.002 - Payment Status (after
+settlement, e.g., ACCC, RJCT,
+PDNG, BLCK, etc.)
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned as FedNow Service
+Reply for OUT.CT
+
+pacs.009 - Liquidity
+Management Transfer
+
+Permissioned to Receive LMT
+messages
+
+IN queue assigned the LMT category
+
+admi.004 - FedNow Service
+Broadcast Message
+
+All
+
+IN queue assigned the ADM category
+
+admi.998 - Participant List
+
+All
+
+IN queue assigned the ADM category
+
+camt.052 - Account Activity
+Totals Report (end-of-day reports
+for Participants and
+Correspondents)
+
+All permissioned to Report EOD
+Receiving messages
+
+IN queue assigned the AR category
+
+camt.052 - Account Activity
+Details Report (end-of-day
+reports for Participants and
+Correspondents)
+
+All permissioned to Report EOD
+Receiving messages
+
+IN queue assigned the AR category
+
+camt.054 - Account Debit/Credit
+Notification
+
+All permissioned to Receive
+Correspondent Debit/Credit
+Notification messages
+
+IN queue assigned the CN category
+
+pain.013 – Request for Payment
+(RFP)
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the NV category
+
+pacs.028 - Payment Status
+Request from Participant
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the NV category
+
+camt.056 – Return Request
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the NV category
+
+camt.055 – RFP Cancellation
+Request
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the NV category
+
+camt.029 – Information Request
+Response
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the NV category
+
+camt.028 – Additional Payment
+Information
+
+Permissioned to Receive CT and
+Return and Receive Nonvalue
+messages
+
+IN queue assigned the NV category
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 22
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Table 2B. Additional Other Incoming Messages
+•
+
+For Participant Profiles with one Connection Party, all messages are sent to the single
+Connection Party.
+
+•
+
+For Participant Profiles with multiple Connection Parties, the FedNow Service attempts to send
+the nonvalue messages listed in the table below to the Connection Party related to the message
+flow, which may be different than the Connection Party permissioned for Credit Transfer,
+Payment Return and Nonvalue Message Receiving.
+
+•
+
+If the FedNow Service is unable to determine or unable to send to the Connection Party related to
+the message flow (based on the elements in ISO Message Used as indicated in the table below),
+the FedNow Service sends the message to the Connection Party permissioned for Credit
+Transfer, Payment Return and Nonvalue Message Receiving.
+
+Example
+Using data from row two in Table 2B below, the FedNow Service attempts to send the Request for
+Payment Response (pain.014) to the Connection Party that initiated the RFP, based on the original
+message ID in the RFP response on the IN queue assigned to the NV category.
+If the FedNow Service is not able to determine or is unable to send to the Connection Party that initiated
+the RFP, the Request for Payment Response (pain.014) is sent to the Connection Party permissioned to
+Receive Credit Transfer, Payment Return and Nonvalue messages.
+Table 2B. Additional Other Incoming Messages
+Message
+
+Connection Party
+That Initiated…
+
+Elements in Message
+
+IN Queue
+
+admi.007 - Receipt
+Acknowledgement from
+Participant
+
+Nonvalue
+
+Related Reference element
+
+IN queue assigned
+the NV category
+
+pain.014 – Request for
+Payment Response
+
+RFP
+
+Original Message ID
+
+IN queue assigned
+the NV category
+
+camt.029 – Return Request
+Response
+
+Return Request
+
+Original Message ID
+
+IN queue assigned
+the NV category
+
+camt.029 – RFP Cancellation
+Request Response
+
+RFP Cancellation
+
+Original Message ID
+
+IN queue assigned
+the NV category
+
+camt.026 – Information
+Request
+
+RFP or CT
+
+RFP: Initiation - Original Message
+ID
+CT: Interbank - Original Message
+ID
+
+IN queue assigned
+the NV category
+
+pacs.002 – Payments Status
+from Participant
+
+Payment Status
+Request
+
+Original Message ID
+
+IN queue assigned as
+FedNow Service
+Reply for OUT.CT
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 23
+
+(to determine Connection Party)
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Queue Expiration & Depth
+To control the load on the MQ queue managers, the FedNow Service sets persistence and time-to-live
+attributes on outbound messages, which vary by message type.
+Note: The information in the table below is not definitive and is subject to change.
+Message Type
+
+Time-to-live
+
+Persistence
+
+PING reply (admi.011)
+
+60 seconds
+
+N
+
+Customer Credit Transfer (pacs.008)
+
+30 seconds
+
+Y
+
+60 seconds
+
+Y
+
+150 minutes
+
+Y
+
+60 seconds
+
+N
+
+Payment Return (pacs.004)
+Payment Status (pacs.002, reply to pacs.028)
+Liquidity Management Transfer (pacs.009, to Receiver FI)
+Payment Status (pacs.002, acknowledgement or advice)
+Message Reject (admi.002)
+Receipt Acknowledgement (admi.007)
+FedNow Service Broadcast Message (admi.004)
+Participant List (admi.998)
+Return Request (camt.056)
+Return Request Response (camt.029)
+Request for Payment (pain.013)
+Request for Payment Response (pain.014)
+Payment Status Request to Participant (pacs.028)
+Account Debit/Credit Notification (camt.054)
+Request for Payment Cancellation Request (camt.055)
+Request for Payment Cancellation Request Response (camt.029)
+Information Request (camt.026)
+Information Request Response (camt.029)
+Additional Payment Information (camt.028)
+Account Activity Totals (camt.052)
+Account Activity Details (camt.052)
+Account Balance (response) (camt.052)
+
+Note: The FedNow Service makes multiple attempts to process messages. If the FedNow Service is
+unable to process a message, it is dropped and no notification is made to the Participant. As a best
+practice, it is recommended that FIs set backout thresholds to ensure messages are withdrawn
+after a specified number of tries. If the message is not processed or withdrawn, it expires when its
+time-to-live threshold is reached.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 24
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Maximum Queue Depth
+The FedNow Service controls the maximum queue depth, currently 1,000 messages, which is the
+maximum number of messages that can be present on a queue. When the max queue depth is reached,
+message delivery to the queue ceases and any further messages destined for that queue are not
+delivered.
+Similarly, regardless of the fill status of the queue, messages not retrieved within their time-to-live period
+are automatically removed from the queue. The receiving Participant must make use of reconciliation
+reports and message retrieval functions to obtain any messages that were missed due to these
+conditions.
+For this reason, the FedNow Service expects connected Participants to always maintain active listeners
+for all queues, except when they are explicitly signed off or disconnected. When a Participant is signed
+off, messages other than pacs.008 and pacs.004 continue to be delivered to their queues until the max
+queue depth is reached.
+
+Application Design Considerations
+The use of MQ Cluster functionality by the FedNow Service has certain important implications for client
+applications, which need to be considered when architecting the solution:
+•
+
+Specifically targeting messages by message id, correlation id or any other message selector will
+not work reliably. If the connection making the request is attached to a different queue manager
+than the one that hosts the message, the message will not be found.
+
+•
+
+Consumers need to be long running and stable so that the cluster can properly identify where the
+consumers are active and direct the messages accordingly.
+
+For a client consumer to work seamlessly with the FedNow MQ cluster, it must be a long running process
+that uses the same connection and queue handle to continuously issue timed GET requests (without a
+message selector). Failure to do so may result in the inability to consume messages from the FedNowhosted queues. Setting a ‘long’ timeout on the GET call to retrieve messages is important to avoid
+overloading the servers. ‘Long’ is of course relative but we would recommend timeouts of 10 seconds or
+more.
+Refer to Note on MDBs and Activation Specifications In Appendix A, for important information on using
+Message Driven Beans and Activation Specifications.
+For performance reasons, it is also highly recommended for processes that PUT messages onto the
+queues use persistent, pooled connections. Participants are allowed to have multiple, concurrent
+connections open (a maximum of 200 in the Production environment at this time) and are expected
+to make use of multiple connections concurrently to meet their performance needs.
+It is recommended for Participants to consider solution designs that decouple the processing of
+messages received from the FedNow MQ servers by creating a layer that quickly pulls the messages off
+of the FedNow queues and stores them locally onto a messaging, streaming or other storage solution,
+from which the actual business processing can occur.
+This approach would provide increased flexibility for processing, as messages can be further distributed
+by type or other criteria in ways that are not supported by the FedNow queues. It would also ensure that
+FedNow queues are quickly drained even under heavy load, avoiding possible stoppage of message
+delivery due to full queues.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 25
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Resiliency
+The FedNow Service is designed to be highly resilient in a way that is transparent to the connected
+Participants. Client systems are not expected to take any specific action to enable resumption of
+operations if a FedNow Service component failure occurs. While the FedNow Service operates at multiple
+locations, separated by large distances, it appears to the client as a single target for connectivity.
+Connected clients do not need to be aware of the physical location to which they are connected.
+Resiliency for the FedNow Service is achieved through multiple levels of redundancy at all tiers between
+the client application and the FedNow Service application itself. A failure of a component along the
+communication path results in a dropped connection, but the client should be able to immediately
+reconnect — connection requests are routed by surviving components to one of the FedNow queue
+managers.
+The FedNow MQ clustering setup uses follow-the-reader functionality, which ensures that when the
+consumer and producer are connected to different queue managers, the messages find their way to the
+consumer.
+For client applications to take advantage of FedNow Service resiliency, clients must enable retry
+capabilities. As mentioned earlier in Application Design Considerations, processes that consume
+messages should be long-running and continuously issuing GET requests. Such processes should
+handle any connection-lost errors and attempt to reconnect until successful. Similarly, processes that
+PUT messages should handle connection-lost errors and retry. When retrying, it is important to discard
+the broken connection and attempt to establish a new one.
+
+Connection Point Affinity
+Connection Point Affinity is a feature of the FedNow Service meant to help connected Participants meet
+their resiliency requirements. Some Participants may operate their solutions at two or more locations,
+which are either disconnected from each other or replicated on a lag. In such scenarios, it is important
+that all messages related to one transaction be processed at the same location.
+Connection Points and Connection Point Affinity ensure every transaction processed by the FedNow
+Service is associated with a Connection Point on the originating side and a Connection Point on the
+receiving side. Every message sent by the service is sent only to the queues associated with those
+respective Connection Points.
+This means for each transaction that originates from a Connection Point, the service will send subsequent
+status notifications related to that initial transaction to the originating Connection Point. Conversely, on
+the receiving side, one connection point will receive the first transaction notification and subsequent
+status notifications.
+Connection Point Affinity takes precedence over Connection Point Status. This means if a message is
+sent from a Connection Point that is subsequently disconnected, the FedNow Service will continue to
+send messages related to the original message to the disconnected Connection Point.
+Notes:
+•
+
+Connection Point Affinity does not apply to pacs.002 messages sent after a transaction has been
+completed/settled (e.g., a status notification from the receiving financial institution informing the
+sending financial institution that the payment has been credited to the ultimate end customer).
+
+•
+
+Participants are allowed to have multiple connections open and are expected to make use of
+concurrent connections to send and receive messages to meet their performance needs. For
+participants that maintain multiple connection points, the expectation is that all connections and
+queues, including readers and writers, are being monitored and maintained by the participant to
+meet the FedNow Service requirements, including active monitoring of the connection and reestablishing the connection when necessary.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 26
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Connection Point Examples
+Connection Point configuration examples are included in the following table:
+Site Configuration
+
+Connection Point Requirements
+
+A Participant has a single site
+
+With a single site, a Participant may not typically need
+more than one Connection Point. The Participant
+application at this site connects to the single Connection
+Point.
+
+A Participant with more than one site and all
+sites are operating concurrently
+
+If a Participant has more than one site, and all sites can
+process all messages interchangeably, an originating
+message is sent from Site A to the FedNow Service, and
+related messages for the same transaction sent from the
+FedNow Service can be delivered to Site B without
+causing processing issues. In this scenario, a single
+Connection Point is sufficient.
+
+A Participant with more than one site but
+each site is operating independently
+
+If a Participant has more than one site, and each site can
+ONLY process messages related to transactions
+originating from the same site, an originating message is
+sent from Site A to the FedNow Service. Related
+messages for the same transaction sent from the
+FedNow Service MUST be delivered to Site A, and each
+site would need its own Connection Point to ensure the
+correct delivery of related messages.
+
+Security Protocols
+The FedNow Service relies on multiple layered controls to ensure a high level of security for its
+operations. The first layer of controls is provided by the FedLine Solutions networks. The details for these
+controls are outside the scope of this document.
+At the MQ protocol level, mutual Transport Layer Security (TLS) authentication is required. Participants
+use FRS-issued client certificates to perform the mutual TLS authentication. Beyond authentication, the
+client certificate is authorized for connection to a specific MQI channel, which is linked to a Connection
+Point. Once connected to a channel, the client is granted GET and PUT rights to (and only to) the queues
+associated with the respective Connection Point (as the Connection Point ID is part of the queue names).
+The FedNow Service further validates that the entities referenced in the message (connecting party,
+instructing agent) are allowed to use the queue on which the message was received.
+An additional control is the cryptographic signature of messages, which is discussed further in
+Signing and Verifying FedNow Service Messages. The FedNow Service validates the signature and the
+association between the entity that sent the message and the key used to sign it.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 27
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+FedNow Service Messages
+FedNow Service messages comply with ISO 20022 standardized metadata and types. These message
+specifications are published at the Federal Reserve Financial Services portal for the FedNow Service on
+the SWIFT MyStandards site.
+While FedNow Service messages include the payment details and other business-oriented information
+related to the payment, messages require FedNow Service-specific customization to support technical
+and connectivity requirements.
+
+This section describes:
+•
+
+Message Components
+
+•
+
+XML Message Structure
+
+•
+
+FedNow Service Schemas
+
+•
+
+Protocol Headers
+
+•
+
+Message Handling Considerations
+
+Note: Programming code is for illustrative purposes only. The Federal Reserve Banks provide no
+warranties with respect to such code, are not responsible for its accuracy or use within your
+environment and disclaim all liability in connection with its use. At a minimum, use of the code in
+your environment is subject to your internal quality and security code processes.
+
+Message Components
+A FedNow Service message consists of an XML-formatted, UTF-8 encoded text payload. A FedNow
+Service message payload consists of the following components:
+
+•
+
+•
+
+Component
+
+Description
+
+For More Information
+
+ISO 20022 Business
+Application Header (BAH)
+
+Separates information from the
+business payload to ensure the
+message is successfully routed. This
+allows required information in the BAH
+to be made available to the business
+applications without having to open •
+•
+and read the message’s business
+payload.
+
+To obtain the BAH, see the SWIFT
+MyStandards site.
+
+ISO 20022 Standard XML
+Schemas
+(Business Messages)
+
+Standard business messages that
+contain the ISO 20022 message types,
+for example: pacs.008.001.08,
+pacs.002.001.10, etc.
+
+FedNow Service Enhanced
+XML Schemas:
+
+Special purpose FedNow Service
+schemas that support technical and
+connectivity requirements.
+
+fednowincoming_external.xsd
+fednowoutgoing_external.xsd
+
+These schemas are also referred to as
+“technical wrappers,” as the BAH and
+business message are inserted in the
+schema to form the complete message
+payload and ensure the successful
+message transmission.
+
+For information on adding the BAH to a
+message, see:
+XML Message Structure
+FedNow Service Schemas
+
+FedNow Service Schemas
+
+The FedNow Service enhanced XML
+schemas can be found by downloading
+the FedNow Service Quick Start Schema
+package (ZIP) from the Content Library
+in the DevRel resource.
+For further questions, contact your
+FedNow onboarding manager at the
+Support Center.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 28
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Component
+
+Description
+•
+
+•
+
+For More Information
+
+The incoming message root tag
+FedNowIncoming is used when the
+Participant sends a message to the
+FedNow Service.
+The outgoing message root tag
+FedNowOutgoing is used when the
+FedNow Service sends a message to
+the Participant.
+
+XML Message Structure
+High-level examples of the XML message structure for incoming and outgoing pacs.008 credit transfer
+messages are provided below.
+Note: The examples illustrate the overall message structure and key elements. For a complete example
+of a signed pacs.008 incoming message, refer to Appendix B: Sample Signed Messages.
+
+Sample Incoming pacs.008 Message Payload (to the FedNow Service)
+<urn:FedNowIncoming xmlns:urn=”urn:fednow:incoming:v001”
+xmlns:urn1=”urn:iso:std:iso:20022:tech:xsd:head.001.001.02”
+
+xmlns:urn2=”urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08”>
+<urn:FedNowIncomingMessage>
+
+FedNow Service Incoming
+Message Root Tag
+
+FedNow Service Incoming
+Message Tag
+
+<urn:FedNowCustomerCreditTransfer>
+<urn1:AppHdr>
+...
+
+Business Application Header
+(BAH)
+
+</urn1:AppHdr>
+<urn2:Document>
+
+Sample FedNow Service
+Message Elements
+
+<urn2:FIToFICstmrCdtTrf>
+...
+</urn2:FIToFICstmrCdtTrf>
+</urn2:Document>
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 29
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sample Outgoing pacs.008 Message Payload (from the FedNow Service)
+<urn:FedNowOutgoing xmlns:urn="urn:fednow:outgoing:v001"
+xmlns:urn1="urn:iso:std:iso:20022:tech:xsd:head.001.001.02"
+xmlns:urn2="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+<urn:FedNowOutgoingMessage>
+
+FedNow Service Outgoing
+Message Root Tag
+
+FedNow Service Outgoing
+Message Tag
+
+<urn:FedNowCustomerCreditTransfer>
+<urn1:AppHdr>
+...
+
+Business Application Header
+(BAH)
+
+</urn1:AppHdr>
+<urn2:Document>
+<urn2:FIToFICstmrCdtTrf>
+
+Sample FedNow Service
+Message Elements
+
+...
+</urn2:FIToFICstmrCdtTrf>
+</urn2:Document>
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 30
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+FedNow Service Schemas
+FedNow Service messages can carry a variety of payload types defined by the ISO 20022 standard.
+Because of this, the FedNow Service message schemas include references to the respective ISO 20022
+schemas that inform the versions of those schemas that are supported.
+While the FedNow Service supports the specified ISO 20022 types, it does not support them as is.
+Like other services, the FedNow Service provides service-specific usage guidelines and rules, while
+maintaining formal compatibility with the original standard.
+These guidelines and rules are provided in the form of FedNow Service-specific enhanced schemas of
+the ISO types (XSD files) and additional rules and guidelines in text form. The FedNow Service enhanced
+schemas optimize business rule processing and can be used for reference and potential second-pass
+validation when building your system.
+
+Preparing to Send and Receive Messages
+To construct messages to send and receive over the FedNow Service, Participants are required to use the
+FedNow Service XML schemas fednow-incoming_external.xsd and fednow-outgoing_external.xsd
+and then apply specific FedNow Service business rules.
+These schemas are also referred to as “technical wrappers” because the Business Application Header
+(BAH) and business message are inserted in the schema to form the complete message payload and
+ensure a successful message transmission.
+
+FedNow XML Schema Quick Start Package
+To assist Participants in setting up or updating FedNow Service and ISO schemas for messaging over the
+service, download the FedNow Service Quick Start Schema package (ZIP) from the Content Library in the
+DevRel resource. This package includes all elements Participants need to get started developing
+messages for the FedNow Service, including:
+FedNow Service XML Schemas (technical
+wrappers)
+
+•
+•
+•
+
+ISO 20022 Standard XML Schemas
+
+Includes the base message types specified in:
+
+You’ll want to extract these files and place them
+in a location that can be referenced by the toplevel schemas.
+
+•
+•
+
+FedNow Service Enhanced XML Schemas
+
+Contains all FedNow Service-enhanced XML schemas
+and business rules for reference and potential secondpass validation.
+
+fednow-incoming_external.xsd
+fednow-outgoing_external.xsd
+FedNowKeyExchange.xsd
+
+fednow-incoming_external.xsd
+fednow-outgoing_external.xsd
+
+Note: The package file name includes the date the file was created rather than a file version numbering
+scheme.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 31
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Additional Schema Resources
+The FedNow XML Schema Quick Start Package contains the schemas needed to implement the FedNow
+Service. You can find additional information and resources in the following locations:
+
+•
+
+The standard versions of the ISO 20022 schema files used by the FedNow Service can be
+downloaded from the ISO 20022 Messages Archive | ISO20022.
+
+•
+
+The specifications for the FedNow Service enhanced XML schemas are available in SWIFT
+MyStandards under the Federal Reserve Financial Services Group, FedNow Service subgroup.
+
+Note: You may first need to join the FedNow Service Release 1 Community to obtain access to the
+FedNow Service enhanced XML schemas and associated documentation. Access to the
+community will be automatically granted upon request via MyStandards.
+
+Protocol Headers
+Protocol headers are used by the FedNow Service to carry technical metadata about the messages,
+which are used by the FedNow Service to authenticate and validate the message. The implementation of
+the protocol headers depends on the communication protocol in use. At this time, IBM MQ is the only
+supported messaging protocol.
+Protocol headers are implemented as JMS message properties in IBM MQ and are an integral part of
+adding a message to the queue.
+The following table describes each protocol header used by the FedNow Service.
+Protocol Header
+
+fnsigid
+
+Default
+
+Description
+
+Required
+
+FedNow Service digital message Signature Key ID. An identifier
+that indicates the public key paired with the private key used to
+sign the message payload.
+See Appendix B: Sample Signed Messages for examples.
+
+fnsig
+
+fnsigspec
+
+FedNow Service digital message signature value. The Base64
+encoding of the signature operations.
+Required
+
+Required
+
+See Appendix B: Sample Signed Messages for examples.
+FedNow Service signature specification. The cipher or hashing
+configuration used during the signature operation for the
+message payload.
+See Appendix B: Sample Signed Messages for examples.
+
+fnclockstart
+
+Optional
+
+An optional header that can be used for the pacs.004, pacs.008
+and pacs.009 message flows, which are subject to the
+20-second timeout. When present, this value will be used as the
+starting point of the 20-second clock instead of the creation
+date value in the BAH header. Note that it is subject to the same
+rules, specifically that it cannot be a value in the future.
+The format for this header element follows the format in the ISO
+20022 specification for the creation date value in the BAH
+header.
+
+venueId
+
+Optional
+
+An identifier used to indicate the targeted venue for this
+message. This header is optional and defaults to “1.” Currently,
+no other values are supported.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 32
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Protocol Header
+
+Default
+
+Description
+In the future, additional values may be used in testing
+environments to facilitate tenant isolation during testing.
+Note: The “I” character in “venueId” must use an uppercase “I.”
+Client-supplied “Message Correlation ID.” The client can choose
+to provide a correlation ID for its own tracking purposes. Every
+message can have a JMSCorrelationID sent in the JMS header.
+As a general pattern, correlation IDs are used to correlate
+requests and responses. A common practice when
+communicating over messaging is to populate the correlation ID
+in a request message and have the reply carry the same
+correlation ID value.
+The FedNow Service supports this pattern on a very limited
+basis. Generally, the FedNow Service returns the correlation ID
+in response to messages whose payload cannot carry a
+reference to the original request.
+Currently, the following scenarios fall into this category:
+•
+
+•
+
+JMSCorrelationID
+
+Optional
+
+PING requests (via the admi.004 message): The
+response doesn’t include an element for the original
+request ID.
+admi.002 rejects: While the admi.002 format allows for
+passing the original request ID, the FedNow Service
+will not be able to populate that element in certain use
+cases (e.g., signature validation failure, message
+format failure). In this case, the FedNow Service will
+provide the JMSCorrelationID of the original request. In
+cases where the service can populate the original
+request ID in the admi.002, it will be provided and
+should be used to correlate the response to the
+request. In cases where the admi.002 does not carry
+the JMSCorrelationID of the request, use the original
+request ID.
+If a Participant can’t process a message received from
+the FedNow Service, the FedNow Service requires the
+Participant to respond with an admi.002 message.
+Participants are expected to carry over the correlation
+ID from the failed request into the correlation ID of the
+admi.002 reply. This helps FedNow Service operators
+identify which message has failed processing.
+Initially, the FedNow Service will not respond to or
+process admi.002 messages sent from Participants.
+If a Participant needs to send a Message Reject
+(admi.002) to the FedNow Service, they should also
+call the Support Center.
+The FedNow Service anticipates being able to process
+the admi.002 message in the future.
+
+•
+
+Sign on/off requests (via the admi.004 message):
+admi.011 response does not include an element for
+original request ID.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 33
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Protocol Header
+
+Default
+
+Description
+•
+
+Key management messages: Requests don’t carry a
+unique ID and therefore the replies do not include an
+element for original request ID.
+
+Duplicate Messages from the FedNow Service
+Participants must validate that all messages received from the FedNow Service have a unique message
+ID in the Business Application Header. There is a potential for Participants to receive a duplicate
+message for any message type from the FedNow Service. Participants must be prepared to recognize
+and not process such messages in order to avoid processing the message more than once. The duplicate
+message will be an identical copy of the previously delivered message, including the Business Application
+Header3 and the message ID in the Business Application Header.
+
+Special Character Handling
+It is important to note that the FedNow Service does not filter, escape or sanitize data in Participant
+messages. The FedNow Service forwards messages as received by the sender. Message senders are
+responsible for protecting their network and working within their organization’s security processes to
+ensure the content of messages complies with their organization’s security requirements.
+Message receivers are responsible for protecting their systems, including filtering, escaping and encoding
+data before it is used.
+
+3
+
+The Possible Duplicate warning will not be indicated in the BAH.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 34
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+FedNow Service Key Management and Exchange
+The Federal Reserve Banks require messages exchanged with FedNow Service Participants to be
+cryptographically signed using asymmetric public and private key pairs. Keys in a key pair are
+mathematically related and are used to sign and validate the signature on messages. Digital signatures
+help the receiver to verify that a message originated from the sender and the message content is
+unchanged.
+Participants or Service Providers (on their behalf) create public and private keys based on specifications
+defined by the FedNow Service. The FedNow Service requires message signing keys to be valid for no
+more than 364 days. Keys with an expiration date greater than 364 days are NOT accepted by the
+service. Participants can opt to use shorter durations by defining an earlier key expiration date when
+uploading keys to the FedNow Service.
+The Federal Reserve Banks permit Participants to maintain multiple active keys and encourage
+Participants to stagger key expiration times to avoid a scenario in which all keys expire at the same time
+and there are no active keys.
+For example, a Participant might register keys three to six months apart to provide adequate time to
+update keys that expire. The Participant is responsible for ensuring an active signing key pair is
+maintained within the FedNow Service to send messages through the service. If all keys expire, refer to
+the instructions in Exchanging Participant Keys with the FedNow Service to reestablish an initial public
+key using the FedNow interface.
+
+This section describes:
+•
+
+Generating Participant Public and Private Key Pairs
+
+•
+
+Calculating a Participant Public Key Fingerprint
+
+•
+
+Exchanging Participant Keys with the FedNow Service
+
+•
+
+Obtaining FedNow Service Public Keys
+
+Note: Programming code is for illustrative purposes only. The Federal Reserve Banks provide no
+warranties with respect to such code, are not responsible for its accuracy or use within your
+environment and disclaim all liability in connection with its use. At a minimum, use of the code in
+your environment is subject to your internal quality and security code processes.
+
+Generating Participant Public and Private Key Pairs
+Participants can choose to generate key pairs using any key management service or standard enterprise
+protocol. For reference, this section provides examples of generating a public and private key pair using
+OpenSSL and Java.
+
+Key Pair Specifications
+Ensure key pairs are consistent with the Federal Reserve Banks’ key pair specifications that dictate
+characteristics, such as algorithm and key length, as summarized below:
+Parameter
+
+Value
+
+Algorithm (optional)
+
+RSA
+
+Key Length
+
+2048 bits
+
+Encoding
+
+PEM
+
+Note: Additional algorithms, key lengths and encoding methods may be added in the future. See this
+Internet Standards Track document for more information about the PEM encoding standard.
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 35
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Private Key Confidentiality
+Participants must maintain the confidentiality of their private keys consistent with the Federal Reserve
+Banks Operating Circular No. 5 (see Operating Circulars on FRBservices.org) and any other agreement
+with the Federal Reserve Banks, which impose confidentiality or information security obligations on a
+Participant and/or its Service Providers.
+This includes, but is not limited to, abiding by your organization’s internal information security
+requirements. At a minimum, Participants are required to take all commercially reasonable steps to
+protect the information. The private key should never be shared outside of your organization.
+
+Generate Public and Private Key Pairs Using OpenSSL
+This example uses the open-source OpenSSL command-line utility available on major platforms to
+generate a key pair. More information about OpenSSL can be found at openssl.org.
+First, generate the private key:
+
+Next, extract the public key from the private key generated above:
+
+Now, both the private and public key files are present in the user's working directory:
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 36
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Generate Public and Private Key Pairs Using Java
+
+Calculating a Participant Public Key Fingerprint
+The FedNow Service uses a key’s public fingerprint to identify the key. A fingerprint is a cryptographic
+hash of the public key exchanged with the FedNow Service represented as a hexadecimal value. Two
+examples of generating a public key fingerprint are shown below: one using OpenSSL commands on the
+terminal and another using Java code.
+
+Calculate a Public Key Fingerprint Using OpenSSL
+In this example, OpenSSL is used to generate an RSA key pair. The fingerprint is derived from the public
+key by exporting its bytes in DER format, applying a SHA256 digest to it, as shown below.
+Note: Private key file named private.pem was created previously.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 37
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Calculate a Public Key Fingerprint Using Java
+In this example, Java code uses classes available only in core Java SE. To obtain the fingerprint, the
+hash value of the public key must be encoded in hexadecimal format as shown below.
+
+Exchanging Participant Keys with the FedNow Service
+Participants must register their key pairs with the FedNow Service. First-time key registration (or a new
+key pair registration after all key pairs have expired) must be done manually through the FedNow
+interface via FedLine Solutions.
+Once submitted, the key pair is validated by the Support Center and a subscriber that holds a supervisor,
+manager or technical role within the FedNow interface via a phone call.
+Subsequent key registrations can be done by exchanging messages with the FedNow Service using a
+programmatic interface, such as IBM MQ.
+Note: If the key pair is not validated within 48 hours, Participants must upload the initial public key pair
+again using the FedNow interface.
+
+Establish an Initial Public Key with the FedNow Interface
+1. Access the FedNow interface and add the initial key information described in the table below.
+Element
+
+Description
+
+FedNowKeyID
+
+Hexadecimal value for the fingerprint of the key (e.g., Key ID SHA256
+fingerprint of the public key). The Key ID is used in the fnsigid protocol
+header to identify which key pair is used in the message.
+
+Name
+
+Key name (reference identification) determined by the Participant.
+
+EncodedPublicKey
+
+The PEM output of the key.
+
+Encoding
+
+The encoding format. Must be the string “PEM.”
+
+KeyExpirationDateTime
+
+Key expiration date/time stamp determined by the Participant for up to
+364 days in the future. After this period, the key will no longer be valid.
+The FedNow Service does not accept messages signed with an expired
+key. Expiration of public keys is based on the calendar date using
+Eastern Standard Time.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 38
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Element
+
+Description
+
+TargetRTN
+
+The scope for which this key is valid. For the first key, the owner ID and
+TargetRTN will always match. For Service Providers representing one
+or more financial institutions, the TargetRTN would be the Service
+Provider’s ETI/RTN using the Authorized Connection Party ID.
+
+Algorithm
+
+A FedNow specified string showing the supported algorithms and
+lengths. For example RSA-2048. (Optional)
+
+2. Once submitted, the key pair remains inactive until the Support Center can validate and verify it.
+Validation involves the Support Center contacting Participants using pre-established contact
+numbers.
+3. Once validated and verified, the key becomes available to the FedNow Service for signature
+validation.
+
+Managing Participant Keys via IBM MQ
+Once the initial key is established, Participants must use a programmatic interface (such as IBM MQ) to
+add additional keys. Note that the FedNow interface cannot be used to add more keys after the initial key
+is established. Participants can choose to revoke keys using either MQ or the FedNow interface.
+Only the Participant public key should be sent to the FedNow Service, not the full key pair. The FedNow
+Service verifies the public key-based predefined specifications and associates it with the caller’s profile(s)
+based on the provided metadata.
+While key exchange messages are unique to the FedNow Service, they must be signed in the same
+manner as ISO 20022 messages. Participants can find the FedNowKeyExchange.xsd and samples of
+key exchange messages by downloading the FedNow Service Quick Start Schema package (ZIP) from
+the Content Library in the DevRel resource.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 39
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Add Keys
+To add keys, send the FedNowMessageSignatureKeyExchange message specifying the
+KeyAddition operation and add values for the following XML elements:
+•
+
+FedNowKeyID (required)
+
+•
+
+Name4 (required)
+
+•
+
+EncodedPublicKey (required)
+
+•
+
+Encoding (required)
+
+•
+
+KeyExpirationDateTime (required)
+
+•
+
+TargetRTN (optional):
+Use to associate the key with a specific RTN or Connection Party business ID. If a TargetRTN is
+not provided, the key will be associated with the Participant's Authorized Connection Party ID and
+will work on all transactions.
+
+The FedNowCustomerMessageSignatureKeyOperationResponse message is returned with a
+status of “success” or “failure.” If a failure occurs, details related to the failure are included in the
+FedNowCustomerMessageSignatureKeyOperationResponse message.
+
+Revoke Keys
+To revoke keys, send the FedNowMessageSignatureKeyExchange message specifying the
+KeyRevocation operation and add values for the following XML elements:
+•
+
+KeyRevocation (required): Provided as an enumerated type (enum) with a choice of revoke or
+compromised.
+
+•
+
+FedNowStatusDescription
+
+•
+
+FedNowKeyID
+
+The FedNowCustomerMessageSignatureKeyOperationResponse message is returned with a
+status of “success” or “failure.” If a failure occurs, details related to the failure are included in the
+FedNowCustomerMessageSignatureKeyOperationResponse message.
+
+4
+
+Participants are required to provide a public key name for easy reference. The name can be a maximum of 100 characters and
+should not match the FedNowKeyID element.
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 40
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Obtaining FedNow Service Public Keys
+Messages originated by the FedNow Service are signed with FedNow Service internal private keys and
+can be validated using the corresponding public key. FedNow Service key components include the key
+and the key ID. Unlike Participant keys, FedNow Service keys do not have a key name.
+Participants must first use the FedNow interface to retrieve the current public keys and initialize their
+system with those public keys before sending and receiving messages to and from the FedNow Service.
+The expiration of FedNow Service public keys is based on the calendar date using Eastern Standard
+Time. Participants must maintain a list of active FedNow Service public keys. This is important because
+the FedNow Service is bound to the same key lifespan requirements as Participants.
+FedNow Service public keys are available on the FedNow interface or through its message functionality.
+This functionality should help reduce operational overhead because it provides a programmatic process
+to obtain an active set of FedNow Service public keys.
+A Participant can request FedNow Service public keys by sending the GetAllFedNowActivePublicKeys
+key message as defined by the schema. The response message is digitally signed and returns all FedNow
+Service currently active keys. The response message should be validated by the receiver to ensure integrity.
+
+FedNow Service Public Key Rotation
+The FedNow Service periodically rotates its keys. When a new FedNow Service public key is available, a
+broadcast message of admi.004 with event type “FNKY” is sent. The Participant can use this message to
+update its cache of FedNow Service public keys. When Participants request an updated list of current
+FedNow Service keys, the currently active set of keys will be provided to them.
+The FedNow Service does not inform Participants when a FedNow Service public key has expired or
+been revoked. For Participant applications, you might want to consider how you will keep the list of
+FedNow Service public keys current without impacting the processing of messages.
+When Participants receive the FedNow Service Broadcast message informing of a new key, it is a best
+practice to check if any FedNow Service public keys have expired or were revoked and to adjust your
+system accordingly. If the FedNow Service revokes all FedNow Service public keys at once, Participants
+can retrieve the new FedNow Service public keys via the FedNow interface.
+
+Example
+As the Participant application processes messages coming from the FedNow Service, and an unknown
+FedNow Service public key is encountered upon validating against the application's internal list of known
+FedNow Service public keys, the application might want to invoke the action
+GetAllFedNowActivePublicKeys to update the internal list of known FedNow Service public keys
+and then retry the validation.
+Because the FedNow Service may rotate in new keys to the set of known FedNow Service public keys,
+the Participant applications should consider invoking GetAllFedNowActivePublicKeys periodically
+(e.g., every 24 hours) to retrieve the current list of FedNow Service public keys and update the
+application's internal list of known FedNow Service public keys.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 41
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Signing and Verifying FedNow Service Messages
+This section describes how to sign and verify FedNow Service messages.
+Note: The FedNow Service may reject a message that is not signed, is signed with an expired key, or is
+signed with a key that is not recognized by the FedNow Service. This does not apply to the
+Participant Broadcast PING admi.004 message, which does not require a signature.
+
+Sign Messages to Send to the FedNow Service
+1. The Participant creates the message to send to the FedNow Service.
+2. Once the message payload is formed, the Participant creates a digital signature of the
+byte stream using their private key and a signing algorithm supported by FedNow Service.
+3. To sign the message, a Participant must place the signature and its metadata in the MQ message
+header, which leaves the XML payload unmodified.
+Note: This differs from a typical XML signature process, which requires the signature to be reinserted in
+the XML payload.
+The message payload is placed in the applicable message queue with the following protocol headers:
+Protocol Header
+
+Description
+
+fnsigid
+
+The hexadecimal fingerprint of the key previously shared with FedNow Service.
+More precisely, this is the value of the FedNow Service KeyID of the public key
+whose private key was used to sign the message.
+
+fnsig
+
+The base64 encoded output of the signature operation from the key mentioned
+above as text.
+The message digest/hashing algorithm specification — currently, only RSASSAPKCS1-v1_5 signature scheme is valid with SHA256 digests (SHA256withRSA).
+Notes:
+
+fnsigspec
+
+•
+
+The expected value is the literal string “SHA256withRSA.”
+
+•
+
+The fnsigspec header will be supported in a future version of the FedNow
+Service. If you use the fnsigspec header, the setting is ignored until support
+is available and there is no adverse impact to the system.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 42
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sign Message Using Java
+
+Verify Messages Sent from the FedNow Service
+When verifying messages sent from the FedNow Service, Participant payment systems must use a public
+key obtained from the FedNow Service via the GetAllFedNowActivePublicKeys programmatic
+interface described earlier.
+FedNow Service Participants must ensure the following when validating messages received from the
+Federal Reserve Banks through the FedNow Service:
+•
+•
+•
+
+Client systems should validate the signature of a message before interacting with its payload.
+The FedNowKeyID matches a key in their cache of FedNow Service public keys.
+The specification follows FedNow Service requirements.
+
+Verify Message Using Java
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 43
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+FedNow REST APIs
+FedNow Service REST APIs provide an additional way for client applications to interact with the service.
+Client applications connect to APIs through FedLine connections. Using standardized API interfaces and
+protocols, clients make calls directly to access services or data, without needing to manage message
+queues or message routing logic. This allows for real-time communication between clients and
+applications with immediate response and feedback.
+Note: FedNow Service APIs are in Pilot testing. Documentation has been made available to help with
+integration and testing efforts. This documentation will be updated as we get feedback and make
+changes to our API offerings. To learn more or to participate, contact your onboarding or
+relationship manager.
+
+Getting started
+1. To start using FedNow Service APIs: work with your onboarding manager who will help you
+obtain a certificate and complete the onboarding process for API access.
+2. Refer to the OpenAPI specifications located in the FedNow DevRel resource for information on
+each API and how to code your applications to access the service.
+Notes:
+•
+
+Some APIs require HTTP message requests to be cryptographically signed. The FedNow Service
+validates the signature and the association between the entity that sent the message and the key
+used to sign it. For more information, see the OpenAPI specifications in the FedNow DevRel
+resource.
+
+•
+
+Programming code is provided for illustrative purposes only. The Federal Reserve Banks provide
+no warranties with respect to such code, are not responsible for its accuracy or use within your
+environment and disclaim all liability in connection with its use. At a minimum, use of the code in
+your environment is subject to your internal quality and security code processes.
+
+Signing API Requests
+The FedNow Service relies on multiple layered controls to ensure a high level of security for its
+operations. The first layer of control is provided by the FedLine Solutions networks. A second layer of
+control is achieved using Mutual Transport Layer Security (mTLS), version 1.3. Participants connecting to
+the service are required to use an FRS-issued client X.509 certificate for mutual TLS authentication.
+An additional control is implemented by requiring all messages to be cryptographically signed.
+The FedNow Service validates the signature and the association between the entity that sent the
+message and the key used to sign it. These controls also apply when using the FedNow Service REST
+APIs.
+This section provides high-level instructions of the API request signing process with sample code for your
+reference, including:
+•
+
+Generating a SHA-512 cryptographic hash of the HTTP message body. This is added to the
+Content-Digest header (see Step 1).
+
+•
+
+Creating a digital signature of the byte stream using your private key and a supported signature
+algorithm, currently RSASSA-PSS with SHA-512 and MFG1 using 64-bit salt (see Step 2).
+
+•
+
+Adding the digital signature to the Signature and Signature-Input headers, along with your
+public key, which is used by the FedNow Service to validate the signature (see Step 2).
+
+You can find OpenAPI specifications in the DevRel resource.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 44
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Prerequisites
+This topic assumes you have completed the API onboarding process and you have an X.509 certificate
+and an associated public/private key pair. You can use the same public/private key pair that you've
+established for FedNow Service messaging via MQ.
+
+1. Generate a SHA-512 Hash of the HTTP Message Body
+The Content-Digest header contains a SHA-512 cryptographic digest of the HTTP message body.
+Once generated, add the header as described in RFC 9530 and RFC 8941.
+A generated sample Content-Digest value is shown below.
+
+Sample Java code to generate an HTTP message body hash:
+public void generateContentDigest(HttpHeaders headers, byte body[]) {
+MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
+
+byte[] digestValue = messageDigest.digest(body);
+byte[] encodedDigestValue = Base64.getEncoder().encode(digestValue);
+
+headers.set("Content-Digest", "sha-512=:" + new
+String(encodedDigestValue) + ":");
+}
+
+Given the following JSON HTTP message body:
+{"hello": "world"}
+
+The expected Content-Digest value for SHA-512 is:
+sha512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+TaPm+AbwAgBWnrIiYllu7BNNyealdVL
+vRwEmTHWXvJwew==:
+
+2. Create Message Signature
+HTTP messages are parsed into a signature base value using an established list of required signature
+components. Signature components are either derived from HTTP parameters (URL,
+GET/POST/DELETE, etc.) or header values. A cryptographic function is then used with a private key to
+sign the signature base. The signature and its signature inputs are then added to the Signature and
+Signature-Inputs parameters.
+All HTTP messages must provide valid Signature and Signature-Input headers in accordance with RFC
+9421. The FedNow Service restricts this to a single signature and header/value pairs.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 45
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Note: All FedNow Service responses to Participant requests will include a content digest and signature
+(i.e., Content-Digest, Signature, and Signature-Input header/value). It is expected that Participants
+will verify responses against the FedNow Service public key in accordance with RFC 9421, Section
+3.2, Verifying a Signature.
+
+Signature-Input Header
+The Signature-Input header defines how a signature base is generated. The following example
+describes its parts:
+Signature-Input: sig1=("@method" "@path" "@query" "contentdigest");created=1618884475;alg="rsa-pss-sha512";keyid="test-key-rsa-pss"
+
+Component
+
+Description
+
+Sig1
+
+Signature key name. Used to associate a signature input with its signature
+value.
+
+("@method" "@path"
+"@query" "contentdigest");
+
+Signature components. An ordered list of derived components and header
+names used to generate the signature base. Components must be
+provided in the order indicated and use all lowercase characters.
+
+created=1618884475
+
+Signature creation time stamp in UNIX seconds. Messages will be
+rejected if this value is not within 20 seconds of the current FedNow
+Service server time.
+
+alg="rsa-psssha512"
+
+Algorithm used to generate the signature value. In this case, rsa-psssha512 would correspond to a RSASSA-PSS with SHA-512 algorithm.
+
+keyid="test-keyrsa-pss"
+
+Associated public key ID of the private key used to sign this signature.
+This is the Participant's key registered with the FedNow Service and is a
+Base-64 encoded hash value.
+
+Signature Base Header
+The Signature header provides the Base-64 encoded signature value as shown in the example below.
+Signature:
+sig1=:e8UJ5wMiRaonlth5ERtE8GIiEH7Akcr493nQ07VPNo6y3qvjdKt0fo8VHO8xXDjmtYoatGY
+BGJVlMfIp06eVMEyNW2I4vN7XDAz7m5v1108vGzaDljrd0H8+SJ28g7bzn6h2xeL/8q+qUwahWA/J
+mC8aOC9iVnwbOKCc0WSrLgWQwTY6VLp42Qt7jjhYT5W7/wCvfK9A1VmHH1lJXsV873Z6hpxesd50P
+SmO+xaNeYvDLvVdZlhtw5PCtUYzKjHqwmaQ6DEuM8udRjYsoNqp2xZKcuCO1nKc0V3RjpqMZLuuyV
+bHDAbCzr0pg2d2VM/OC33JAU7meEjjaNz+d7LWPg==:
+Component
+
+Description
+
+Sig1
+
+Signature key name. Associates this value with a signature input.
+
+:e8UJ5wMiRa …
+aNz+d7LWPg==:
+
+Base-64 signature value between colons (':').
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 46
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+HTTP Message Signature Example
+The following example illustrates the required HTTP message components in the format expected by the
+FedNow Service.
+
+Input HTTP Message
+POST /foo?param=Value&Pet=dog HTTP/1.1
+Host: example.com
+Date: Tue, 20 Apr 2021 02:07:55 GMT
+Content-Digest: sha512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+TaPm+AbwAgBWnrIiYllu7BNNyealdVL
+vRwEmTHWXvJwew==:
+Content-Type: application/json
+Content-Length: 18
+
+{"hello": "world"}
+
+Signature Base
+The Signature Base value is:
+"@method": POST
+"@path": /foo
+"@query": ?param=Value&Pet=dog
+"content-digest": sha512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+TaPm+AbwAgBWnrIiYllu7BNNyealdVL
+vRwEmTHWXvJwew==:
+"@signature-params": ("@method" "@path" "@query" "contentdigest");created=1618884473;alg="rsa-pss-sha512";keyid="test-key-rsa-pss"
+
+Signed HTTP Message
+The resulting signed HTTP message is:
+POST /foo?param=Value&Pet=dog HTTP/1.1
+Host: example.com
+Date: Tue, 20 Apr 2021 02:07:55 GMT
+Content-Type: application/json
+Content-Digest: sha512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+TaPm+AbwAgBWnrIiYllu7BNNyealdVL
+vRwEmTHWXvJwew==:
+Content-Length: 18
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 47
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Signature-Input: sig1=("@method" "@path" "@query" "contentdigest");created=1618884473;alg="rsa-pss-sha512";keyid="test-key-rsa-pss"
+Signature:
+sig1=:HIbjHC5rS0BYaa9v4QfD4193TORw7u9edguPh0AW3dMq9WImrlFrCGUDih47vAxi4L2YRZ3
+XMJc1uOKk/J0ZmZ+wcta4nKIgBkKq0rM9hs3CQyxXGxHLMCy8uqK488o+9jrptQ+xFPHK7a9sRL1I
+XNaagCNN3ZxJsYapFj+JXbmaI5rtAdSfSvzPuBCh+ARHBmWuNo1UzVVdHXrl8ePL4cccqlazIJdC4
+QEjrF+Sn4IxBQzTZsL9y9TP5FsZYzHvDqbInkTNigBcE9cKOYNFCn4D/WM7F6TNuZO9EgtzepLWcj
+TymlHzK7aXq6Am6sfOrpIC49yXjj3ae6HRalVc/g==:
+
+{"hello": "world"}
+Note: RSASSA-PSS is a non-deterministic algorithm that produces a unique signature value each time
+the algorithm is run.
+
+Verifying API Responses
+All FedNow Service responses to Participant requests include a content digest and signature
+(i.e., Content-Digest, Signature/Signature-Input headers). After receiving a response from the
+FedNow Service, we encourage Participants to verify the response against the FedNow Service public
+key in accordance with RFC 9421, Section 3.2, Verifying a Signature.
+This section contains high-level instructions for verifying responses based on the requirements contained
+in RFC 9421 and includes information specific to the FedNow Service implementation. Each step includes
+sample code for your reference.
+
+1. Validate the Content Digest
+The content digest is a simple Base-64 encoded hash value. To validate a digest:
+1. Extract the hash algorithm and hash value from the header value.
+2. Generate a new hash value using the hash algorithm and response body.
+3. Compare to the header's hash value against the generated value.
+Notes:
+•
+
+A null/empty body is treated as an empty string when the FedNow Service generates the content
+digest.
+
+•
+
+A body is expected to be UTF-8 encoded.
+
+Sample Content Digest Header
+Sha512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+TaPm+AbwAgBWnrIiYllu7BNNyealdVL
+vRwEmTHWXvJwew==:
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 48
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sample Validation Algorithm
+public void validateContentDigest(String hashAlgorithm, String
+contentDigestHeaderValue, byte body[]) {
+boolean isValid = false;
+
+if (contentDigestHeaderValue == null ||
+contentDigestHeaderValue.trim().isEmpty()) {
+return false;
+}
+
+MessageDigest messageDigest = MessageDigest.getInstance(hashAlgorithm);
+String
+
+expectedContentDigests =
+
+new String(
+Base64.getEncoder()
+.encode(messageDigest.digest(digestBody.getBytes(StandardCharsets.UTF_8))));
+
+return Objects.equals(expectedContentDigests, contentDigestHeaderValue);
+}
+
+2. Validate the Message Signature
+To validate a message signature in a response from the FedNow Service:
+1. Extract the Signature-Input parameters from the response header's value.
+2. Extract the Signature value from the header of the response.
+3. Generate a Signature Base value for the HTTP response entity as described in RFC 9421,
+Section 2.5.
+4. Cryptographically verify the response's Signature value against the generated base and public
+key information.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 49
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Parse the Signature and Signature-Input Values
+Sample Content Digest Method
+Signature-Input: sig1=("@path" "@query" "content-type" "content-digest"
+"content-length");created=1618884473;alg="rsa-pss-sha512";keyid="test-keyrsa-pss"
+Signature:
+sig1=:HIbjHC5rS0BYaa9v4QfD4193TORw7u9edguPh0AW3dMq9WImrlFrCGUDih47vAxi4L2YRZ3
+XMJc1uOKk/J0ZmZ+wcta4nKIgBkKq0rM9hs3CQyxXGxHLMCy8uqK488o+9jrptQ+xFPHK7a9sRL1I
+XNaagCNN3ZxJsYapFj+JXbmaI5rtAdSfSvzPuBCh+ARHBmWuNo1UzVVdHXrl8ePL4cccqlazIJdC4
+QEjrF+Sn4IxBQzTZsL9y9TP5FsZYzHvDqbInkTNigBcE9cKOYNFCn4D/WM7F6TNuZO9EgtzepLWcj
+TymlHzK7aXq6Am6sfOrpIC49yXjj3ae6HRalVc/g==:
+
+Expected Content Digest Method Values after Parsing
+String signatureInput = "(\"@path\" \"@query\" \"content-type\" \"contentdigest\" \"content-length\");created=1618884473;alg=\"rsa-psssha512\";keyid=\"test-key-rsa-pss\"";
+List<String> signatureInputParameters = List.of("@path", "@query", "contenttype", "content-digest", "content-length");
+String base64EncodedSignature =
+"HIbjHC5rS0BYaa9v4QfD4193TORw7u9edguPh0AW3dMq9WImrlFrCGUDih47vAxi4L2YRZ3XMJc1
+uOKk/J0ZmZ+wcta4nKIgBkKq0rM9hs3CQyxXGxHLMCy8uqK488o+9jrptQ+xFPHK7a9sRL1IXNaag
+CNN3ZxJsYapFj+JXbmaI5rtAdSfSvzPuBCh+ARHBmWuNo1UzVVdHXrl8ePL4cccqlazIJdC4QEjrF
++Sn4IxBQzTZsL9y9TP5FsZYzHvDqbInkTNigBcE9cKOYNFCn4D/WM7F6TNuZO9EgtzepLWcjTymlH
+zK7aXq6Am6sfOrpIC49yXjj3ae6HRalVc/g=="
+Note: Order must be preserved for the Signature parameters list.
+
+Generate the Signature Base
+The function to generate the Signature base is described in RFC 9421, Section 2.5. Sample input and
+output values are provided below.
+
+Sample Signed HTTP Response Input
+POST /foo?param=Value&Pet=dog HTTP/1.1
+Host: example.com
+Date: Tue, 20 Apr 2021 02:07:55 GMT
+Content-Type: application/json
+Content-Digest: sha512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+TaPm+AbwAgBWnrIiYllu7BNNyealdVL
+vRwEmTHWXvJwew==:
+Content-Length: 18
+Signature-Input: sig1=("@path" "@query" "content-type" "content-digest"
+"content-length");created=1618884473;alg="rsa-pss-sha512";keyid="test-keyrsa-pss"
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 50
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Signature:
+sig1=:HIbjHC5rS0BYaa9v4QfD4193TORw7u9edguPh0AW3dMq9WImrlFrCGUDih47vAxi4L2YRZ3
+XMJc1uOKk/J0ZmZ+wcta4nKIgBkKq0rM9hs3CQyxXGxHLMCy8uqK488o+9jrptQ+xFPHK7a9sRL1I
+XNaagCNN3ZxJsYapFj+JXbmaI5rtAdSfSvzPuBCh+ARHBmWuNo1UzVVdHXrl8ePL4cccqlazIJdC4
+QEjrF+Sn4IxBQzTZsL9y9TP5FsZYzHvDqbInkTNigBcE9cKOYNFCn4D/WM7F6TNuZO9EgtzepLWcj
+TymlHzK7aXq6Am6sfOrpIC49yXjj3ae6HRalVc/g==:
+
+{"hello": "world"}
+
+Sample Signature Base Output
+"@path": /foo
+"@query": ?param=Value&Pet=dog
+"content-type": application/json
+"content-digest": sha512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+TaPm+AbwAgBWnrIiYllu7BNNyealdVL
+vRwEmTHWXvJwew==:
+"content-length": 18
+"@signature-params": ("@method" "@path" "@query" "content-type" "contentdigest" "content-length");created=1618884473;alg="rsa-psssha512";keyid="test-key-rsa-pss"
+Note: Do not insert a new line at the end of the Signature base value.
+
+Verify Signature with Generated Signature Base Value
+Verify the generated Signature base with the Signature value contained in the response. The
+FedNow Service generates all signatures using the RSASSA-PSS with SHA-512 algorithm (MFG1 using
+64-bit salt).
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 51
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+The following example provides a basic function to validate a signature using this algorithm given the
+original Base-64 encoded signature value, a generated signature base and the FedNow public key.
+public boolean verifySignature(String
+signatureBase, PublicKey publicKey) {
+
+base64EncodedSignature, String
+
+var signature = Signature.getInstance("rsa-pss-sha512");
+signature.setParameter(
+new PSSParameterSpec(
+"SHA-512", "MGF1", MGF1ParameterSpec.SHA512, 64,
+PSSParameterSpec.TRAILER_FIELD_BC));
+signature.initVerify(publicKey);
+signature.update(signatureBase.getBytes(StandardCharsets.UTF_8));
+
+var decodedSignature= Base64.getDecoder().decode(base64EncodedSignature);
+
+return signature.verify(decodedSignature);
+}
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 52
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Appendix A: Configuring the MQ Client
+IBM MQ is the primary means of communication between the FedNow Service and Participants.
+Participants use the IBM MQ client library to connect remotely to FedNow Service MQ servers over the
+FedLine Solutions closed user group networks.
+The FedNow Service MQ environment operates as a single cluster across sites, allowing Participants to
+connect to a server at any site. The MQ clustering software ensures messages are moved across to
+nodes that have active listeners, when needed.
+To PUT and/or GET messages from the FedNow Service queues, the Participant’s connecting application
+needs to leverage an IBM MQ client library. The method of packing the library is unique to the application
+environment. The minimum IBM MQ client Version.Release.Modification.Fixpack (V.R.M.F) for use with
+the FedNow Service is 9.3.0.
+Note: MQ server is not currently supported for FedNow Service connections.
+
+Requirements and Support Documentation
+To better understand MQ client and system requirements, refer to the following information and
+support links.
+Requirements
+
+Description
+•
+
+List of Clients – Enter ‘9.3.0.6’ into the Filter fix details field.
+
+•
+
+Specific OS/Language Clients
+
+MQ Client
+
+•
+Certificate
+Revocation
+Checking
+
+-
+
+Java/JMS – Enter ‘9.3.0.6’ into the Filter fix details field.
+
+-
+
+Maven
+
+-
+
+Redistributable – Enter ‘9.3.0.6’ into the Filter fix details field.
+
+-
+
+Resource Adapter (for use with any JEE 7.0 compliant application server) –
+Enter ‘9.3.0.6’ into the Filter fix details field.
+
+-
+
+.NET Standard
+
+-
+
+.NET XMS
+
+-
+
+Detailed system requirements
+
+Disable OCSP for your implementation.
+• mqclient.ini includes OCSPCheckExtensions=NO for client
+implementations that can use it.
+• Java/JMS specific instructions to disable if enabled by default on the JVM.
+
+CRL client configuration will not be included and therefore should be disabled.
+Automatic
+Client
+Reconnection
+
+Client Channel
+Definition Table
+(CCDT)
+
+Disable, as it will not function appropriately in relation to the FedNow Service
+availability/resilience architecture.
+The CCDT determines the channel definitions and authentication information used by
+client applications to connect to the queue manager.
+•
+•
+
+The CCDT is mandatory.
+The JSON CCDTs file is available for download from the FedNow interface.
+
+Note: There is one CCDT file per Connection Point.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 53
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Client Configuration File
+Participants should use an MQ Client configuration file (mqclient.ini). Additional support documentation is
+available to help locate the client configuration file.
+The mqclient.ini should include:
+
+Connection Pooling
+MQ Client implementations should attempt to pool connections for reuse in all scenarios as a best
+practice.
+
+TLS Version and Ciphers
+All FedNow Service MQ clients must use TLS Version 1.3. Ensure your operating environment can
+enable cipher specifications in the TLS 1.3 family. Subsequently, ensure your application is configured to
+allow the MQ client to use TLS 1.3 ciphers. For Java/JMS, the Java Cryptography Extension (JCE)
+Unlimited Strength Jurisdiction Policy Files should be used if it is not the default for your JRE/JDK.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 54
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Client (X.509) Certificate and Trust Chain
+A trust store must be configured for use by the MQ client and/or application that contains the FRB CA root
+and issuer signer certificates. This is mandatory for the first step in the mutual TLS handshake whereby
+the MQ client will validate the FRS queue manager certificate via the signer certificates in the trust store
+made available to the MQ client.
+The MQ client and/or application must present an FRB CA signed (personal) certificate during the mutual
+TLS handshake. This should exist in a keystore made available to the MQ client and application.
+
+Note on MDBs and Activation Specifications
+A client application using Message Driven Beans (MDBs) and Activation Specifications running in
+WebSphere Application Server will face challenges receiving messages from the FedNow MQ queue
+managers if the activation specification is configured to operate in Application Server Facilities (ASF)
+mode. In ASF mode, an activation specification uses one thread to browse a queue for available
+messages and when one is found it passes its id to another thread which uses another connection to get
+the message.
+The second connection could be connected to a different queue manager than the one that performed the
+browse, and in that case the message will not be retrieved. To get around this behavior, the activation
+specification must be configured to run in non-ASF mode.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 55
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Appendix B: Sample Signed Messages
+This appendix provides examples of signed pacs.008 and pacs.002 messages. For each message, the
+following is provided:
+•
+
+Sample Participant key pair
+
+•
+
+Sample protocol header values, fnsig (public key fingerprint), fnsigid (digital signature of
+message), and fnsigspec (message digest algorithm specification)
+
+•
+
+FedNow Service sample ISO message (incoming)
+
+Note: The sample message code and sample Participant key pair provided in this guide are for illustrative
+purposes only. The Federal Reserve Banks provide no warranties with respect to such code, are
+not responsible for its accuracy or use within your environment and disclaim all liability in
+connection with its use. At a minimum, use of the code in your environment is subject to your
+internal quality and security control processes.
+For more information on creating keys, calculating fingerprints and the overall structure of FedNow
+Service XML messages, refer to previous sections of this document.
+
+Sample Participant Key Pair
+The following sample Participant key pair (private and public keys) was used to generate the signed
+pacs.008 and pacs.002 message examples in this appendix.
+
+Sample Participant Private Key
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 56
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sample Participant Public Key
+
+Sample Protocol Header Values for pacs.008 and pacs.002
+Messages
+The table below contains sample fingerprint and signature values for both the pacs.008 and pacs.002
+messages, which are defined in the following protocol headers:
+fnsigid
+
+The fingerprint of the public key of the key pair used to sign the message. Use the public
+key corresponding to this fingerprint to verify the message.
+
+fnsig
+
+The digital signature of the message, signed with the private key of the key pair.
+
+fnsigspec
+
+The message digest algorithm specification.
+
+Message
+
+pacs.008
+
+pacs.002
+
+Note:
+
+Protocol Header
+
+Sample Value
+
+fnsigid
+
+64bd90849a87792bc2842b7ac7ba57f4fc6d9b54568ed21a47b32ed
+dd417878d
+
+fnsig
+
+OVL30FqUAqzKG7+S2n4pGd7FpuBVrWynhCEgQEKhe2xwKG9o
+RpsAB4QFYQID0Tml7Ye40Q90On6dNKNPIgKMnv2q30Z8dwWBD
+fLR9yBfIYTIq9PXaLfZGtbxkHQB7YpTWqbDY8awIjz5FH49UP40oP
+El5fGCjtHabndGYJ0B9Z3z/nDQyfNHo2hPFgKfH8MIY78OS/wYArE
+58L89k0hKgcvrg1jVcwMIHvxVBrllNYhfDQWtL+nBh9y5F+hed/0vNj
+Y8ccP1eecF6WwDBpJsztHys5rlRlEqkVPSMreFhFUpRHvR0nLsVj
+QaX6jqYUH9pPiTSlpx/GIZ3ECX/5Q+MA==
+
+fnsigspec
+
+SHA256withRSA
+
+fnsigid
+
+64bd90849a87792bc2842b7ac7ba57f4fc6d9b54568ed21a47b32ed
+dd417878d
+
+fnsig
+
+NoXkVOVQdTkkCnp88AkcWBiSV+/0zWsz1BGNQt8KsvMbCUg8V
+FDI81U+o3AemYDwiNiYu2GdOhRO71zG4rFJEov0uRG+RISmHhh
+f0Nx5LNZW4FJr6sRcz6hj/V9ajuwEmyfGWlaEJtoaPNh9Y9dyk1X8
+Kqk5U+xJhw8QzIAAZrhMjYb9nChC8VUfM+GJg0AXFYhQabq99T8
+YPqsWrdnvka6skuRKrmoaa2xl0ikzKQ8DXGv1+XjIIQYCOSL3yCD
+B2KJbarVI4SAoObD8+5HQkJYvHrKr0AWz9VHNsw6mj0jUGGbYw
+pBs7Rt8828QTSIcSXlKbTo/5JlroAOycrLgfQ==
+
+fnsigspec
+
+SHA256withRSA
+
+The signature values for fnsig in the table above were calculated using text files of actual
+pacs.008 and pacs.002 messages. The sample messages included in this appendix are for
+illustrative purposes only and their format has been altered for inclusion in this guide.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 57
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Important! Do not copy the sample message from this Appendix as this may cause a different signature
+to be produced.
+
+Sample FedNow Service Messages
+Sample pacs.008 ISO Message – Incoming
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 58
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sample pacs.008 ISO Message – Incoming (cont’d)
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 59
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sample pacs.008 ISO Message – Incoming (cont’d)
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 60
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sample pacs.008 ISO Message – Incoming (cont’d)
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 61
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sample pacs.002 ISO Message – Incoming
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 62
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Sample pacs.002 ISO Message – Incoming (cont’d)
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 63
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Appendix C: Error Codes and Descriptions
+This appendix describes the error codes used in any FedNow Service rejection message, including
+admi.002, pacs.002 and other ISO message negative responses. This section will be updated as error
+codes are added or modified.
+Participants who consistently receive rejection messages with the same error code should review this
+information and contact the Support Center for additional support, as needed.
+Error Code
+
+Error Description
+
+E301
+
+Report request failed. Review request, update and resubmit as needed.
+
+E400
+
+ISO message does not exist, can resend with same message ID (or new message ID).
+
+E401
+
+Sender of the payment status request is not authorized to receive transaction status.
+
+E402
+
+Original ISO message referenced was not processed; resend with new unique message ID.
+
+E411
+
+Transaction is still processing; retry after timeout clock has elapsed.
+
+E420
+
+Rejected due to control set by Correspondent.
+
+E481
+
+Invalid dates included in the reporting from date and/or to date elements.
+
+E500
+
+Internal processing error; contact the Support Center.
+
+E600
+
+Balance inquiry is not allowed for this account or by this Participant.
+
+E760
+
+Invalid response sender and receiver. Response sender and receiver must match original
+transfer request.
+
+E890
+
+Pending transaction status (ACCC, BLCK or PDNG) is not valid for this message.
+
+E891
+
+Finalized transaction status (ACTC or ACWP) is not valid for this message.
+
+E960
+
+Internal error. Contact the Support Center for details.
+
+E970
+
+Invalid settlement relationship. Sender FI and Receiver FI must have a valid settlement
+relationship within the FedNow Service to indicate the appropriate Master Account to which
+transactions will be settled.
+
+E974
+
+Internal processing error; contact the Support Center.
+
+E980
+
+Invalid FedNow Service profile for the Sender FI RTN. As a result, the RTN is not eligible to send
+this message type.
+
+E981
+
+Invalid FedNow Service profile for the Receiver FI RTN. As a result, the Receiver FI RTN is not
+eligible to receive this message type.
+
+E982
+
+Sender FI or Receiver FI does not have a Participant Profile enabled to send and/or receive
+instant payments; or Receiver FI does not have a Participant Profile enabled to receive Request
+for Payment (RFP) messages.
+
+E983
+
+Liquidity Management Transfers (LMTs) were sent outside of supported hours. LMTs can be
+sent only during specified LMT operating hours. See Network Limits section for LMT hours.5
+
+5 Network Limits section to be provided in the future.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 64
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Error Code
+
+Error Description
+
+E984
+
+Sender FI or Receiver FI does not have a Participant Profile enabled for the indicated RTN to
+send and/or receive LMTs.
+
+E990
+
+Invalid transaction limit. Transaction exceeds the FedNow Service transaction limit, or a lower
+limit set by the Sender FI.
+
+E996
+
+Reserved response timeout. Insufficient time remains on the payment timeout clock to
+accommodate Receiver FI reserved response time.
+
+E997
+
+Timeout clock has expired. Processing of the transaction exceeded the payment timeout clock.
+
+E998
+
+•
+•
+
+Receiver FI is not signed on to the FedNow Service and therefore cannot receive instant
+payments.
+Sender FI and/or Receiver FI is not yet active on the FedNow Service.
+
+E999
+
+ISO message has a creation date or time stamp that is in the future from when it was received
+by the FedNow Service. This is not allowed.
+
+T501
+
+ISO message exceeds the maximum allowable size of 25,000 characters.
+
+T504
+
+Invalid clearing system member ID element. The ID in the “to” component should be the FedNow
+Service member ID (e.g., "021150706").
+
+T505
+
+ISO message does not meet the FedNow Service ISO 20022 message specifications for one or
+multiple elements.
+
+T506
+
+Invalid message definition identifier. This identifier should be associated with the underlying
+message and must be a version that FedNow Service supports.6
+
+T508
+
+Business processing date/time element is not allowed in the ISO message. This element is used
+only by the FedNow Service.
+
+T509
+
+Copy duplicate element is not allowed in an ISO message sent by a Participant. This element is
+used only by the FedNow Service.
+
+T510
+
+Related element is not allowed in an ISO message sent by a Participant. This element is used
+only by the FedNow Service.
+
+T512
+
+Invalid message ID. A valid message ID must meet the following criteria:
+•
+•
+•
+
+Calendar date (CCYYMMDD) is the current date.
+Connection Party ID (nine numeric characters).
+Reference sequence assigned by sender (up to 18 alphanumeric characters7).
+
+T514
+
+Structured remittance information element exceeded the maximum length of 4,000 characters.
+
+T515
+
+Message contains both structured and unstructured remittance elements. The FedNow Service
+only allows one or the other within a single message.
+
+T516
+
+Invalid sending party or sending party information. A valid sending party is a Participant or a
+Service Provider that is authorized to send messages on behalf of the Participant.
+
+T517
+
+ISO message ID is a duplicate. The message ID must be unique.
+
+6 Details on the current message versions supported by the FedNow Service can be found in the FedNow Service ISO 20022
+
+Implementation Guide.
+7 Length may not exceed allowable character limits for FedNow Service ISO 20022 messages.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 65
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Error Code
+
+Error Description
+
+T518
+
+ISO message does not contain an original transaction ID or original UETR. The ISO message
+must contain one or both.
+
+T519
+
+ISO message does not contain a phone number in the preferred contact method (PHON)
+element. A phone number must be provided when phone is the preferred contact method.
+
+T520
+
+ISO message does not contain a mobile number in the preferred contact method (CELL)
+element. A mobile number must be provided when cell is the preferred contact method.
+
+T521
+
+ISO message does not contain an email address in the preferred contact method (MAIL)
+element. An email address must be provided when mail is the preferred contact method.
+
+T522
+
+ISO message does not contain the required status reason code for the rejected transaction.
+
+T523
+
+Invalid transaction status code. ISO messages must include one of the following eligible codes:
+ACTC, ACWP, ACCC, BLCK, PDNG or RJCT.
+
+T524
+
+Invalid original message name identification. A valid ISO message name as permitted in the ISO
+2022 message specification rules is required.
+
+T525
+
+Invalid original interbank settlement amount format. This amount must be:
+•
+•
+
+Greater than $0.
+Maximum of two decimal places when there are trailing zeros.
+
+T526
+
+Insufficient information provided. When debtor of the return is a party, the debtor party, account
+and agent must be provided.
+
+T527
+
+Invalid local instrument. The local instrument specifies the FedNow Service product code under
+which the message is sent. In a pacs.008 message, the code should be FDNA. In a pacs.009
+message, the code should be LMT1.
+
+T528
+
+Invalid returned interbank settlement amount format. This amount must be:
+•
+•
+
+Greater than $0.
+Maximum of two decimal places when there are trailing zeros.
+
+T529
+
+Invalid message signature on ISO 20022 message. For the signature to be valid, it must be
+signed with the key owner’s private key that corresponds to an active public key that was
+previously created and validated by the FedNow Service.
+
+T530
+
+Invalid country code. See the officially assigned code list on the ISO 20022 website
+(iso20022.org).
+
+T531
+
+Invalid Original Message Name Identification value.
+
+T532
+
+Invalid interbank settlement amount format. This amount must be:
+•
+•
+
+T533
+
+Invalid compensation amount. This amount must be:
+•
+•
+
+T534
+
+Greater than $0.
+Maximum of two decimal places when there are trailing zeros.
+
+Greater than $0.
+Maximum of two decimal places when there are trailing zeros.
+
+ISO message does not contain the required transaction identification or UETR.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 66
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Error Code
+
+Error Description
+
+T535
+
+Invalid category purpose field. This field must begin with a C, B or G, followed by 3 alphanumeric
+characters.
+
+T536
+
+Insufficient information. If the ISO 20022 message used reason code is NARR, additional
+information or additional incorrect information must be present, as applicable.
+
+T537
+
+Key signature algorithm not supported.
+
+T538
+
+Account balance request cannot include a reporting period because the balance is as of a
+particular date and time.
+
+T539
+
+Account balance request must include the account type.
+
+T540
+
+If an Account Balance Report (ABAR), Account Activity Totals Report (AATR or IATR) or an
+Account Activity Details Report (AADR) is requested, then the member identification element
+must be the FedNow Service Connection Party identifier of the requestor of the report(s) and
+must match the "From" element in BAH.
+
+T542
+
+Invalid Market Practice Identifier.
+
+T543
+
+Invalid original message date. Original message date must be the current date or previous
+calendar date.
+
+T544
+
+Message referenced in admi.007 is not found.
+
+T545
+
+Reporting Period and Account Type are not allowed for an Intraday Account Activity Totals
+Report (IATR) or a Correspondent Intraday Account Activity Totals Report (CITR).
+
+T546
+
+Invalid Account ID for message type. A Correspondent Account Activity Totals Report cannot be
+requested for a single RTN.
+
+T547
+
+Invalid status code. The status code must be TS02.
+
+T548
+
+Invalid charges amount format. This amount must be:
+•
+•
+
+T550
+
+Invalid status confirmation code for the return request response message. Must contain one of
+the following codes:
+•
+•
+•
+•
+
+T551
+
+Greater than $0.
+Maximum of two decimal places when there are trailing zeros.
+
+IPAY
+RJCR
+PDCR
+PECR
+
+Cancellation Status Reason Information component is incorrect:
+•
+•
+
+Reason code is required if status confirmation code is ‘RJCR.’
+Only one instance of the Cancellation Status Reason Information component is allowed.
+
+T553
+
+Proprietary under Reason cannot be populated.
+
+T554
+
+Invalid status code for the information request response message. Must be one of the following
+codes:
+•
+•
+•
+
+IPAY
+IDUP
+INFO
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 67
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Error Code
+
+Error Description
+•
+•
+
+NINF
+PDNG
+
+T555
+
+Incorrect format in fnclockstart element, refer to the Technical Specifications document for the
+correct format.
+
+T556
+
+Invalid Correction Transaction component in information request response message. If the
+correction transaction component is present, the status must be “IPAY.”
+
+T557
+
+If an (end-of-day) Account Activity Totals Report (AATR), an (end-of-day) Account Activity
+Details Report (AADR), a (end-of-day) Correspondent Account Activity Totals Report (CATR), or
+a (end-of-day) Correspondent Account Activity Details Report (CADR) is requested, then
+Reporting Period is mandatory and Account Type is not allowed.
+
+T558
+
+Invalid Requested Message Name Identification in the camt.060 message. A valid ISO
+message name as permitted in the ISO 20022 message specification rules is required.
+
+T559
+
+The Expiry Date must not be more than 365 days out in the future from the day the RFP is sent.
+
+T560
+
+Invalid Transaction Status Code. Must be one of the following codes:
+•
+•
+•
+•
+
+ACTC
+PRES
+RJCT
+RCVD
+
+T561
+
+The Status Reason Information component can only occur once.
+
+T562
+
+The Business Service element in the BAH is not used by participants.
+
+T563
+
+Invalid Status Confirmation code. Must be one of the following codes:
+•
+•
+•
+
+CNCL
+RJCR
+PDCR
+
+T565
+
+If the Resolution Related Information is populated, the status must be IDUP.
+
+T566
+
+If the Resolution Related Information is populated, the status must be either IPAY or PECR.
+
+T567
+
+Invalid original instructed amount format. The amount must be:
+•
+
+T568
+
+Invalid instructed amount format. The amount must be:
+•
+
+T569
+
+Maximum of two decimal places when there are trailing zeros.
+
+Maximum of two decimal places when there are trailing zeros.
+
+Invalid accepted amount format. The amount must be:
+•
+
+Maximum of two decimal places when there are trailing zeros.
+
+T570
+
+Invalid key encoding. The encoding algorithm must be one supported by the FedNow Service.
+
+T571
+
+Invalid key algorithm. The key algorithm must be one supported by the FedNow Service.
+
+T572
+
+Invalid encoded key. Unable to parse the key using the given encoding and key algorithms
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 68
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Error Code
+
+Error Description
+
+T573
+
+Invalid key length.
+
+T574
+
+Invalid key fingerprint.
+
+T575
+
+Invalid key expiration. Keys with an expiration date greater than 364 days in the future are not
+accepted by the FedNow Service.
+
+T576
+
+Duplicate key. All keys added must be unique.
+
+T577
+
+Key indicated in Revoke Key Message is not found.
+
+T578
+
+Last active key cannot be revoked via MQ Message.
+
+T579
+
+Key indicated in Revoke Key Message is in revoked or expired state.
+
+T580
+
+Event Time future dated.
+
+T581
+
+Error in event code element. If Event Code-FPON/FPOF then Event Parameter must be 9-digit
+RTN. If Event Code-FPCD/FPCR then Event Parameter must be 7-digit Hexadecimal
+(connection point ID).
+
+T582
+
+Requested Execution Date cannot be in the past.
+
+T583
+
+Expiry Date (Time) cannot be before the Requested Execution Date (Time).
+
+T584
+
+At least one connection point must be connected per Connection party.
+
+T586
+
+Processing of request timed out. If the problem persists, call Support Center.
+
+T587
+
+API Request does not meet the specifications for one or multiple elements.
+
+T588
+
+Unable to retrieve Participant List for current cycle date, try again. If the problem persists, call
+Support Center.
+
+T589
+
+Internal error. Contact the Support Center if the issue continues.
+
+T590
+
+Invalid FedNow Service profile. As a result, the Connection Party is not eligible to send this
+request.
+
+T591
+
+Invalid API Request signature.
+
+T592
+
+Invalid API Request signature for time elapsed.
+
+T600
+
+Balance inquiry service not available. Or balance inquiry not allowed for this account.
+
+F101
+
+Entry pair matches the Receiver FI’s fraud controls.
+
+F002
+
+Entry pair matches an entry on the Sender FI’s Negative List with a send restriction.
+
+F004
+
+Negative list processing did not complete. (Warning Code)
+
+F008
+
+Transaction rejected due to Sender FIs cumulative value criteria.
+
+F009
+
+Transaction rejected due to Sender FIs velocity criteria.
+
+F010
+
+Account Activity Threshold processing did not complete. (Warning Code)
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 69
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Error Code
+
+Error Description
+
+F011
+
+Negative List and Account Activity Threshold processing did not complete. (Warning Code)
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 70
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Technical Specifications
+
+Revision History
+Date
+
+Version
+
+Revisions
+
+September 2022
+
+1.0
+
+Official release of the FedNow Service Technical Specifications document
+for the FedNow Service Pilot Program.
+
+December 2022
+
+1.1
+
+Contains required updates and enhancements since the official release in
+September 2022.
+
+March 2023
+
+1.2
+
+Contains required updates and enhancements since the last release in
+December 2022.
+
+June 2023
+
+1.3
+
+Contains required updates and enhancements since the last release in
+March 2023.
+
+July 20, 2023
+
+1.4
+
+Contains required updates and enhancements since the last release in June
+2023.
+
+October 2023
+
+1.5
+
+Contains required updates and enhancements since the last release in July
+2023.
+
+December 2023
+
+1.6
+
+Contains required updates and enhancements since the last release in
+October 2023.
+
+February 2024
+
+1.7
+
+Contains required updates and enhancements since the last release in
+December 2023.
+
+April 2024
+
+1.8
+
+Contains required updates and enhancements since the last release in
+February 2024.
+
+May 2024
+
+1.9
+
+Contains required updates and enhancements since the last release in April
+2024.
+
+November 2024
+
+1.10
+
+Contains required updates and enhancements since the last release in May
+2024.
+
+January 2025
+
+1.11
+
+Contains required updates and enhancements since the last release in
+November 2024.
+
+February 2025
+
+1.12
+
+Contains required updates and enhancements since the last release in
+January 2025.
+
+© 2022-2025 Federal Reserve Banks. FedNow Confidential Information. Materials are not
+to be used or shared without consent.
+
+| Page 71
+
+

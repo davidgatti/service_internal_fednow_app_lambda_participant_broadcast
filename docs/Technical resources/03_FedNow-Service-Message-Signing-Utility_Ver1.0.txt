@@ -1,0 +1,490 @@
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow℠ Service Message Signing Tool
+
+Es
+
+SM Service
+The
+FedNow
+FedNow℠ Service
+Technical Specifications
+Message Signing Tool
+November 1, 2021
+July 20, 2022
+v.1.1 1.0
+Version
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 1 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow℠ Service Message Signing Tool
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without
+consent.
+The Reserve Banks are providing the tool for use by participants in the FedNow℠ Service. It is to be used
+as a reference in creating messages to send to the FedNow Service. FedNow Service Testing Participants
+should reference the FedNow℠ Service Technical Specifications and FedNow℠ Service ISO 20022
+Implementation Guide for additional details. The Reserve Banks provide no warranties with the respect
+to the tool, are not responsible for its accuracy or use within your environment, and disclaim all liability
+in connection with its use. Use of the tool in your applications is subject to your internal quality and
+security control processes.
+The Financial Services logo, “FedNow” and “FedLine” are service marks of the Federal Reserve Banks. A
+list of marks related to financial services products that are offered to financial institutions by the Federal
+Reserve Banks is available at FRBservices.org.
+Products and company names of third parties identified in this document are trademarks of their
+respective holders. Use of them does not imply any affiliation with or endorsement by them.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 2 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow℠ Service Message Signing Tool
+
+Table of Contents
+Introduction......................................................................................................................................... 4
+Purpose ............................................................................................................................................... 4
+FedNow Service Message Signing Tool Utilities .................................................................................... 5
+Get Started .......................................................................................................................................... 5
+Install and Configure Java .................................................................................................................... 5
+Prerequisites ............................................................................................................................................. 5
+Check Java Configuration ..................................................................................................................... 6
+Set the JAVA_HOME Environment Variable.......................................................................................... 6
+Install the FedNow Service Message Signing Tool ................................................................................. 9
+Invoke Message Signing Utility Functions ........................................................................................... 10
+GetPublicKeyFingerprint .................................................................................................................... 10
+Input ........................................................................................................................................................ 10
+Output ..................................................................................................................................................... 10
+Configuration and usage ......................................................................................................................... 10
+SignParticipantMessage ..................................................................................................................... 11
+Input ........................................................................................................................................................ 11
+Output ..................................................................................................................................................... 11
+Configuration and usage ......................................................................................................................... 11
+Required configuration file entries ......................................................................................................... 11
+Example properties file ........................................................................................................................... 11
+Example program run and output .......................................................................................................... 12
+Example of providing a custom configuration file as a command-line argument .................................. 12
+VerifyMessageSignature .................................................................................................................... 12
+Input ........................................................................................................................................................ 12
+Output ..................................................................................................................................................... 12
+Configuration and usage ......................................................................................................................... 12
+Required configuration file entries ......................................................................................................... 13
+Example properties file ........................................................................................................................... 13
+Example program run and output .......................................................................................................... 13
+Example of providing a custom configuration file as a command-line argument .................................. 14
+Revision History ................................................................................................................................. 15
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 3 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow℠ Service Message Signing Tool
+
+Introduction
+This guide describes how to install, configure, and operate the FedNow℠ Service Message Signing tool.
+The tool consists of Java code samples that demonstrate how to apply the cryptographic operations
+required to process a participant's real-time payments for the FedNow Service.
+
+Purpose
+The FedNow Service Message Signing Tool was developed to assist with the following:
+•
+•
+
+Provide an opportunity to learn the required elements for message signing and how the
+cryptographic functions work together to sign and verify XML messages.
+Help troubleshoot common problems that FedNow Service participants may experience, including:
+- Calculating Public Key Fingerprints.
+- Signing XML messages sent from participants to the FedNow Service, which produces a digital
+signature.
+- Verifying XML messages sent from the FedNow Service to participants using the calculated
+digital signature when signing a message.
+- Using the FedNow fnsig and fnsigid message protocol headers that accompany the XML
+message payload.
+
+NOTE: Before using the FedNow Service Message Signing tool, we strongly recommend you familiarize
+yourself with the contents of the FedNow℠ Service Technical Specifications, especially as it
+relates to the above tasks.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 4 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow℠ Service Message Signing Tool
+
+FedNow Service Message Signing Tool Utilities
+The FedNow Service Message Signing Tool consists of the three utilities, described in the table below.
+Click the name of each utility to view step-by-step instructions for invoking and using each utility.
+Utility
+
+Description
+
+GetPublicKeyFingerprint
+
+Calculates public key fingerprint. Accepts a PEM-encoded
+public key file as input and outputs its fingerprint.
+
+SignParticipantMessage
+
+Computes the digital signature of a file consisting of an XML
+message payload meant to be sent from a participant to the
+FedNow Service. Accepts a file containing the XML message to
+sign and a pre-computed RSA public-private key pair in
+separate PEM-encoded files
+
+VerifyMessageSignature
+
+Verifies the digital signature of a message with the
+corresponding message and public key of the signing key pair.
+Accepts the following inputs: public key of the public-private
+key pair used to sign the message; a file containing the XML
+message to verify; the file containing the digital signature
+produced by signing the message with the corresponding
+private key of key pair; the value(text or binary) specifying the
+format of the digital signature to verify.
+
+Get Started
+Complete the following steps to get started using the FedNow Service Message Signing tool:
+1. Install and configure Java.
+2. Install the FedNow Service Message Signing Tool.
+3. Invoke Message Signing Utility Functions.
+
+Install and Configure Java
+The instructions below describe how to install and configure Java on your local machine.
+
+Prerequisites
+•
+•
+•
+
+Your computer needs to have Java SE Version 11 or higher installed and configured in order to run
+these programs.
+You must have an environment variable called JAVA_HOME that is set to your Java installation
+directory.
+Please see the following sections to learn how to check if Java is installed on your PC, how to obtain
+it, and how to configure it to use with the FedNow Service Message Signing Tool utilities.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 5 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow℠ Service Message Signing Tool
+
+Check Java Configuration
+You can check your Java installation by issuing the commands java -version and echo
+%JAVA_HOME% in a DOS command prompt window, as shown here:
+c:\> java -version
+java version "11.0.14.0.1" 2022-01-18 LTS
+Java(TM) SE Runtime Environment 18.9 (build 11.0.14.0.1+1-LTS-3)
+Java HotSpot(TM) 64-Bit Server VM 18.9 (build 11.0.14.0.1+1-LTS-3, mixed mode)
+c:\>echo %JAVA_HOME%
+C:\Java\JDK11-64
+
+NOTES:
+•
+•
+
+If you do not have Java 11 or higher installed, please contact your System Administrator.
+If you do have Java, but a JAVA_HOME environment variable is not set, follow the steps in the
+next section to create it.
+
+Set the JAVA_HOME Environment Variable
+Follow these steps to set the JAVA_HOME environment variable for your Windows user account.
+
+1. Open the Windows Control Panel application. You can find it by searching from the Windows
+Taskbar as shown below:
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 6 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow℠ Service Message Signing Tool
+
+2. Open the User Accounts window from Control Panel.
+
+3. Select Change my environment variables.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 7 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow℠ Service Message Signing Tool
+4. Press the New... button in the "Environment Variables" form that appears.
+
+5. Enter values for the Variable name and Variable value similar to what is in the image below.
+The variable name must be JAVA_HOME. The variable value may differ for individual users
+based upon where Java is installed on your PC.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 8 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow℠ Service Message Signing Tool
+
+Install the FedNow Service Message Signing Tool
+1. Right-click on the FedNowMessageSigningTools.zip file in Windows Explorer to open the pop-up
+context menu. Select the Extract All... menu item.
+
+2. In the Extract window that appears, select a destination folder where you want to unzip the
+selected file, and then press the Extract button.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 9 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow℠ Service Message Signing Tool
+
+Invoke Message Signing Utility Functions
+Each utility has its own Windows DOS .cmd scripts, which are used to call the underlying Java programs.
+They require that Java is installed and the JAVA_HOME environment variable is set as described earlier in
+this document.
+IMPORTANT NOTES:
+•
+
+•
+
+Once a signature is generated, white-space characters in the XML message payload file, such as tabs,
+spaces, and new lines are part of the generated digital signature and must be sent in the MQ
+message payload. Any edits made after generating the signature, such as removing characters or
+converting tabs to spaces, will cause the message to fail.
+Line endings differ between Windows and Unix/Linux operating systems. Files created on Windows
+use carriage return and line feed ("\r\n"), whereas Unix/Linux uses only line feed ("\n").Transferring
+files between operating systems may or may not alter the line ending characters, depending on the
+file transfer mechanism.
+
+GetPublicKeyFingerprint
+Accepts a PEM-encoded public key file as input and outputs its fingerprint.
+
+Input
+
+A file path to an RSA PEM-encoded public key file as input.
+
+Output
+
+The fingerprint of the public key file.
+
+Configuration and usage
+
+Pass the path of the public key PEM-encoded file as command-line parameter.
+Example program run and output:
+C:\FedNowMessageSigningTools>GetPublicKeyFingerprint.cmd sample-participantpublic-key.pem
+64bd90849a87792bc2842b7ac7ba57f4fc6d9b54568ed21a47b32eddd417878d
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 10 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow℠ Service Message Signing Tool
+
+SignParticipantMessage
+Computes the digital signature of a file consisting of an XML message payload meant to be sent from a
+participant to the FedNow Service.
+
+Input
+•
+•
+
+A file containing the XML message to sign.
+A pre-computed RSA public-private key pair in separate PEM-encoded files.
+
+Output
+•
+•
+•
+
+The fnsigid message protocol header value that should be set for the input message file. The fnsigid
+value is the public key fingerprint of the key pair used to sign the message.
+The fnsig message protocol header value that should be set for the input message file. The fnsig
+value is the message signature in Base64 text-encoded format.
+A status message indicating whether the computed message signature verifies successfully. Should
+always display 'true'. If it outputs 'false', an error occurred such as using a mismatched key pair.
+
+Configuration and usage
+
+Reads entries from a Java properties configuration file at program startup. Defaults to name
+config.properties in the directory where the program is invoked (the working directory).
+
+Optionally, the path to a different configuration file may be provided as a command-line argument
+instead. The name of the configuration file and file names in the properties file are configurable as well.
+
+Required configuration file entries
+•
+•
+•
+
+participantPrivateKeyPemFilename: Path to the private key of a pre-computed RSA public-
+
+privatekey pair. The private key file must be in PKCS#8 PEM-encoded format.
+participantPublicKeyPemFilename: Path to the public key of a pre-computed RSA publicprivatekey pair. The public key file must be in PEM-encoded format.
+participantMessageFilename : Path to the file containing the XML payload message to sign.
+
+NOTE: Filenames can be relative or absolute file path names.
+
+Example properties file
+participantPrivateKeyPemFilename=sample-participant-pkcs8-private-key-pem.txt
+participantPublicKeyPemFilename=sample-participant-public-key-pem.txt
+participantMessageFilename=sample-participant-to-fednow-message.xml
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 11 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow℠ Service Message Signing Tool
+
+Example program run and output
+C:\FedNowMessageSigningTools>SignParticipantMessage.cmd
+loading configuration settings from file:
+C:\FedNowMessageSigningTools\config.properties
+Participant private key file: sample-participant-pkcs8-private-key.pem
+Participant public key file: sample-participant-public-key.pem
+Participant message file: sample-participant-to-fednow-message.xml
+fnsigid: 64bd90849a87792bc2842b7ac7ba57f4fc6d9b54568ed21a47b32eddd417878d
+fnsig:IQ1v6HXfAma5DOa6xj6KNZVIAGe4QuMWEvA+iTE8Q1Y1h2VwilvmiCZ5Mn/2k6yrqckAT
+CfK+8xrTebxfmHm0gOprdRL4HNIjf86WWO8J+
+Digital signature of participant message with participant's public key is
+verified: true
+
+Example of providing a custom configuration file as a command-line
+argument
+C:\FedNowMessageSigningTools>SignParticipantMessage.cmd
+C:\work\myconfig.properties
+
+VerifyMessageSignature
+Verifies a message digital signature with the corresponding message and public key of the signing
+keypair.
+
+Input
+
+•
+•
+•
+•
+
+The public key of the public-private key pair used to sign the message.
+A file containing the XML message to verify.
+A file containing the digital signature produced by signing the message with the corresponding
+private key of key pair. The signature file may be in binary or Base64 text-encoded format.
+The value text or binary specifying the format of the digital signature to verify.
+
+Output
+
+A message indicating the result of verifying the message. Outputs 'true' if the message is verified
+successfully; 'false' otherwise.
+
+Configuration and usage
+
+Reads entries from a Java properties configuration file at program startup. Defaults to name
+config.properties in the directory where the program is invoked (the working directory).
+Optionally, the path to a different configuration file may be provided as a command-line argument
+instead. The name of the configuration file and file names in the properties file can also be configured.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 12 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow℠ Service Message Signing Tool
+
+Required configuration file entries
+
+verifyPublicKeyPemFilename: Path to the public key of a pre-computed RSA public-private keypair.
+
+The public key file must be in PEM-encoded format.
+
+verifyMessageFile: Path to the file containing the XML payload message to verify.
+verifyMessageSignatureFilename: Path to the file containing the digital signature to verify.
+verifyDigitalSignatureFileFormat: text if the digital signature is in Base64-encoded text
+format; binary if the signature is in binary format.
+
+NOTE: Filenames can be relative or absolute file path names.
+
+Example properties file
+verifyPublicKeyPemFilename=sample-fednow-public-key.pem
+verifyMessageFile=sample-fednow-outgoing-message-camt054.xml
+#signature in text format
+verifyMessageSignatureFilename=sample-fednow-outgoing-message-camt054signature-base64.txt
+verifyDigitalSignatureFileFormat=text
+
+If text is supplied as the value for the verifyDigitalSignatureFileFormat property, the
+signature is expected to be in Base64-encoded text format. Note that the value of the fnsig header in a
+FedNow Service message is in Base64-encoded text format.
+
+Example program run and output
+C:\FedNowMessageSigningTools>VerifyMessageSignature.cmd
+loading configuration settings from file:
+C:\FedNowMessageSigningTools\config.properties
+Public key file: sample-fednow-public-key.pem
+Message file: sample-fednow-outgoing-message-camt054.xml
+Message Digital signature file: sample-fednow-outgoing-message-camt054signature-base64.txt
+Digital signature file format: text
+Digital signature of message is valid: true
+
+The program also accepts a signature in binary format, as shown in the properties settings below:
+verifyPublicKeyPemFilename=sample-fednow-public-key.pem
+verifyMessageFile=sample-fednow-outgoing-message-camt054.xml
+#signature in binary format
+verifyMessageSignatureFilename=sample-fednow-outgoing-message-camt054signature
+verifyDigitalSignatureFileFormat=binary
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 13 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow℠ Service Message Signing Tool
+and the corresponding program output:
+C:\FedNowMessageSigningTools>VerifyMessageSignature.cmd
+loading configuration settings from file:
+C:\FedNowMessageSigningTools\config.properties
+Public key file: sample-fednow-public-key.pem
+Message file: sample-fednow-outgoing-message-camt054.xml
+Message Digital signature file: sample-fednow-outgoing-message-camt054signature
+Digital signature file format: binary
+Digital signature of message is valid: true
+
+Example of providing a custom configuration file as a command-line
+argument
+C:\FedNowMessageSigningTools>VerifyMessageSignature.cmd
+C:\work\myconfig.properties
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 14 of 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow℠ Service Message Signing Tool
+
+Revision History
+Date
+
+20 July 2022
+
+Version
+1.0
+
+Revisions
+
+Initial release of the FedNow℠ Service Message Signing Tool document.
+
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 15 of 15
+
+

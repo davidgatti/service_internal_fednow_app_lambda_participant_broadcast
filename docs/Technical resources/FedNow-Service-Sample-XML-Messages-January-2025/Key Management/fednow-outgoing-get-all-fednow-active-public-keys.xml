@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Legal Notices
+
+The Federal Reserve Banks are providing this FedNow Service sample message for
+illustrative purposes only. Please refer to the FedNow Service Technical
+Specifications and FedNow Service ISO 20022 Implementation Guide for additional
+details on how to apply the sample message. The Reserve Banks provide no
+warranties, are not responsible for its accuracy or use within your
+environment, and disclaim all liability in connection with your use of this
+sample message. Use of the information in your applications is subject to your
+internal quality and security control processes.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+<FedNowOutgoing xmlns="urn:fednow:outgoing:v001">
+    <FedNowOutgoingMessage>
+        <FedNowOutgoingMessageSignatureManagement>
+            <FedNowPublicKeyResponses xmlns="urn:fednow:security:external:v001">
+                <PublicKeys>
+                    <FedNowMessageSignatureKeyStatus>
+                        <KeyStatus>active</KeyStatus>
+                        <StatusDateTime>2023-11-07T14:47:55-05:00</StatusDateTime>
+                        <FedNowStatusDescription>active</FedNowStatusDescription>
+                    </FedNowMessageSignatureKeyStatus>
+                    <FedNowMessageSignatureKey>
+                        <FedNowKeyID>p6Y27Y9p283234074b04Y67e2520b86bY4YY7Y23p3e07bb687Y6b3Y22bb63370</FedNowKeyID>
+                        <Name>p6Y27Y9p283234074b04Y67e2520b86bY4YY7Y23p3e07bb687Y6b3Y22bb63370</Name>
+                        <EncodedPublicKey>-----BEGIN PUBLIC KEY-----
+MRRBRjYNBgk6hkRG9w0BY6EpYYO4Y68YMRRB4gK4Y6EY0243bKp3zYPWYRH274WE
+w6GzOjr2wGYP3zh2Y22ugkVYm3PJpM28wsJ6yYYp/Yz4M+2hr6V7sUUg+Spz7vPy
+YN07gOm3O5prMRJ8po7pS4RpjVBYYu0pZ226vYB7nmpR4puVp4rV6hOYNHHRJ4We
+N44Z/OYYhYsuSpp7rvuVegkr7rHMw5BrKGYrgg/7r4Y458Z5gRM463Yp490HuHB5
+WpP/47YY634r79RZ7/p8RJmg22KhZ7B4uyk7yr6JY2hOY+Gp2Ep72h767BYwRS28
+RHuZ0s6o7eRH2ZM0RKjZ7V535Y6oUu2Sr4522g2gEuJWVYbBG24ynV37Vo7YRk2/
+p6R2Y6YB
+-----END PUBLIC KEY-----</EncodedPublicKey>
+                        <Encoding>PEM</Encoding>
+                        <Algorithm>RSA</Algorithm>
+                        <KeyExpirationDateTime>2024-01-12T11:27:25-05:00</KeyExpirationDateTime>
+                    </FedNowMessageSignatureKey>
+                </PublicKeys>
+                <PublicKeys>
+                    <FedNowMessageSignatureKeyStatus>
+                        <KeyStatus>active</KeyStatus>
+                        <StatusDateTime>2023-11-07T14:47:55-05:00</StatusDateTime>
+                        <FedNowStatusDescription>active</FedNowStatusDescription>
+                    </FedNowMessageSignatureKeyStatus>
+                    <FedNowMessageSignatureKey>
+                        <FedNowKeyID>x2F8iY9p283234074b04Y67e2520b86ba5b76Y23p3e07bb687Y6b3Y23an5d370</FedNowKeyID>
+                        <Name>x2F8iY9p283234074b04Y67e2520b86ba5b76Y23p3e07bb687Y6b3Y23an5d370</Name>
+                        <EncodedPublicKey>-----BEGIN PUBLIC KEY-----
+rT4bajYNBgk6hkRG9w0BY6EpYYO4Y68YMRRB4gK4Y6EY0243bKp3zYPWYRH274WE
+w6GzOjr2wGYP3zh2Y22ugkVY5bdD0sM28wsJ6yYYp/Yz4M+2hr6V7sUUg+Spz7vPy
+YN07gOm3O5prMRJ8po7pS4RpjVBYYu0pZ226vYB7nmpR4puVp4rV6hOYNHHRJ4We
+N44Z/OYYhYsuSpp7rvuVegkr7rHMw5BrKGYrgg/7rv3gp0sZ5gRM463Yp490HuHB5
+WpP/47YY634r79RZ7/pf42o522KhZ7B4uyk7yr6JY2hOY+Gp2Ep72h767BYwRS28
+RHuZ0s6o7eRH2Zf8rf3Z7V535Y6oUu2Sr4522g2gEuJWVYbBG24ynV37Vo7YRk2/
+sdf435d2
+-----END PUBLIC KEY-----</EncodedPublicKey>
+                        <Encoding>PEM</Encoding>
+                        <Algorithm>RSA</Algorithm>
+                        <KeyExpirationDateTime>2023-12-19T14:47:55-05:00</KeyExpirationDateTime>
+                    </FedNowMessageSignatureKey>
+                </PublicKeys>
+            </FedNowPublicKeyResponses>
+        </FedNowOutgoingMessageSignatureManagement>
+    </FedNowOutgoingMessage>
+</FedNowOutgoing>

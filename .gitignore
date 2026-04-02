@@ -1,0 +1,8 @@
+node_modules/
+.output/
+**.DS_Store
+**.env
+package-lock.json
+.jest-cache
+.tmp
+computed_key_addition.xml

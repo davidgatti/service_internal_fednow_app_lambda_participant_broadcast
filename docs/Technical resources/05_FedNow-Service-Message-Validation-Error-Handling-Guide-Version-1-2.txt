@@ -1,0 +1,1817 @@
+INTERNAL FR/OFFICIAL USE // SECURE EXTERNAL
+
+FedNow® Service
+Message Validation & Error
+Handling Guide
+May 28, 2024
+Version 1.2
+© 2022 Federal Reserve Banks. Pilot Confidential. Materials are not to be used or shared without consent.
+
+| Page 1
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+The FedNow® Service Message Validation & Error Handling Guide provides technical details about the FedNow Service. The Federal Reserve
+Banks may change this guide at any time and will endeavor to provide at least 30 days’ notice for material changes. The FedNow Service will
+be governed by applicable law and the terms of an Operating Circular issued by each of the Federal Reserve Banks. Other Federal Reserve
+Banks operating circulars applicable to the Federal Reserve Banks provision of financial services, including operating circulars that govern the
+account relationships and electronic connection with the Participants, will also apply. If the FedNow Service Message Validation & Error
+Handling Guide conflicts with Federal Reserve Bank Operating Circulars governing the FedNow Service, Operating Circulars take precedence.
+To the extent a FedNow Participant uses Service Provider(s), requirements in the FedNow Service Message Validation & Error Handling
+Guide, otherwise applicable to FedNow Service Participants, also apply to the Service Provider when it performs functions as an agent on
+behalf of a FedNow Service Participant.
+The Financial Services logo and “FedNow” are service marks of the Federal Reserve Banks. A list of marks related to financial services
+products that are offered to financial institutions by the Federal Reserve Banks is available at FRBservices.org.
+Products and company names of third parties identified in this document are trademarks of their respective holders. Use of them does not imply
+any affiliation with or endorsement by them.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 2
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Table of Contents
+Introduction .................................................................................................................................................................................................................. 4
+Audience .................................................................................................................................................................................................................... 4
+How to Use This Guide .............................................................................................................................................................................................. 4
+FedNow Service Message Validation ......................................................................................................................................................................... 5
+FedNow Service Validations ...................................................................................................................................................................................... 5
+Reply Not Received Error ............................................................................................................................................................................................ 6
+External Validation Errors ........................................................................................................................................................................................... 7
+Message Size Error – T501 ....................................................................................................................................................................................... 7
+Message Signing Errors – T529................................................................................................................................................................................. 7
+Invalid Signature Error – T537 ................................................................................................................................................................................... 8
+For Schema Validation Errors – T505 ........................................................................................................................................................................ 9
+Message Sender Authorization Errors – T516 ......................................................................................................................................................... 10
+Rule Validation Errors ............................................................................................................................................................................................... 10
+Business Application Header Rules ......................................................................................................................................................................... 11
+Common Message Rules ......................................................................................................................................................................................... 14
+Credit Transfer Rules ............................................................................................................................................................................................... 17
+pacs.004 Rules ........................................................................................................................................................................................................ 18
+pacs.008 Rules ........................................................................................................................................................................................................ 21
+pacs.009 Rules ........................................................................................................................................................................................................ 23
+pacs.002 Rules ........................................................................................................................................................................................................ 25
+pacs.028 Rules ........................................................................................................................................................................................................ 28
+camt.060 Rules ........................................................................................................................................................................................................ 28
+admi.004 Rules ........................................................................................................................................................................................................ 31
+admi.007 Rules ........................................................................................................................................................................................................ 32
+Revision History ......................................................................................................................................................................................................... 33
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 3
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Introduction
+This guide describes the validations run by the FedNow Service and the errors that can occur. Each error condition is fully described and includes
+resolutions to help you fix errors. Notes are provided to assist you in understanding the reason the error occurred and where you can find more
+information.
+Important: This guide does not contain an exhaustive list of all FedNow Service error conditions that can occur. Error conditions that are
+anticipated to cause Participants the most difficulty are fully documented below, along with suggested workarounds.
+Use this guide with the documents listed below to obtain a complete understanding of the FedNow Service.
+Document
+
+Purpose
+
+FedNow Service Operating Procedures
+
+Details about the FedNow Service including expectations, requirements and guidance to be
+followed by FedNow Participants.
+
+FedNow Service ISO® 20022 Implementation
+Guide
+
+ISO 20022 message implementation guidelines for the FedNow Service and ISO 20022
+message scope, usage, flows and business content.
+Use this guide in combination with the FedNow Service Technical Specifications to execute
+message processing to and from the FedNow Service.
+
+FedNow Service Technical Specifications
+
+Provides technical details required for application development with the FedNow Service. Use
+this guide in combination with the FedNow Service ISO 20022 Implementation Guide to
+execute message processing with the FedNow Service.
+
+Audience
+This guide is intended for use by developers at financial institutions (FIs) and Service Providers who use the FedNow Service. References to
+“Participants” in this guide apply to developers at financial institutions (FIs) and Service Providers, unless otherwise indicated.
+
+How to Use This Guide
+To obtain the most benefit from this guide, we recommend adhering to the following guidelines:
+1. First, familiarize yourself with the documentation listed in in the table above.
+2. Next, review the validation overview and checkpoints described in the FedNow Service Message Validation section. Each validation
+checkpoint is explained and includes the error codes generated by the system if the checkpoint fails.
+3. The rest of this guide is organized according to the errors that can occur for each type of validation. Each error is summarized in a
+quick-reference table format that includes: the error code number, the standard error description, error details, resolution and notes. We
+recommend reviewing the information for each error condition so you are prepared if issues arise.
+Note:
+
+If you require additional information or support, contact the Support Center for further assistance.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 4
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+FedNow Service Message Validation
+When the FedNow Service receives a message off a queue, a series of data validations occurs to ensure the message is secure and viable for
+processing. If validation finds a message that is not viable, further validations halt, and in most situations, an admi.002 message is sent to the
+sender’s reply queue with the relevant error code and description.
+Not all messages sent to the FedNow Service result in a reply. Some messages are dropped. For example, if a message includes an invalid venue
+ID, the message is immediately dropped. If a message is put on a queue that does not handle that message type, it is immediately dropped.
+If the message is found to be secure and viable, processing proceeds until the message is fully validated.
+
+FedNow Service Validations
+The table below describes the validations performed by the FedNow Service in the order they occur. Each validation checkpoint is described and
+includes the error codes generated by the system if the specific checkpoint fails. The table also lists the specific actions taken by the system if a
+message fails a validation checkpoint.
+Validation
+
+Description
+
+If an Error Occurs…
+
+Validation of Venue ID Protocol
+Header
+
+The queue message header for the venue ID (venueid)
+protocol header is checked to ensure it is known to the
+FedNow Service.
+
+•
+•
+
+Further validation is halted.
+The message is dropped. No reply is
+sent to the sender.
+
+Validation of Other Protocol
+Headers
+
+Checked to verify:
+• The total size of the message XML does not exceed the
+defined limit. (T501)
+• The value in the message header (fnsigid) represents the
+ID of an active key that belongs to the connection party
+sending the message. (T529)
+• The queue message header for the signature (fnsig) is
+correct for the associated key (fnsigid) and the message
+content. (T529).
+Determines if the message XML is well-formed, contains only
+valid XML Unicode characters, and all elements and attributes
+conform to the FedNow ISO schema.
+
+•
+•
+
+Further validation is halted.
+An admi.002 is forwarded to the
+sender’s reply queue with the relevant
+(T501 or T529) error code.
+
+•
+•
+
+Further validation is halted.
+An admi.002 is forwarded to the
+sender’s reply queue with the T505
+error code.
+
+The system validates if:
+• The sender that put the message on the queue is
+authorized to use the queue.
+
+•
+•
+
+Further validation is halted.
+An admi.002 is forwarded to the
+sender’s reply queue with the T516
+error code.
+
+Schema Validations
+
+Sender Authorization Validations
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 5
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Validation
+
+Description
+
+If an Error Occurs…
+
+•
+
+Rules Validations
+
+The sender that put the message on the queue is the
+transaction owner or authorized to act on behalf of the
+transaction owner.
+• A valid key is used (different from valid signature) – the
+system validates that either a master key or the right key
+for the Participant (target owner) is being used.
+The message is validated to comply with all of the rules
+specified by the FedNow Service message specification to
+ensure the content is complete and viable for the intended
+transaction.
+
+•
+•
+
+Further validation is halted.
+An admi.002 is forwarded to the
+sender’s reply queue with the relevant
+error code (as described in the rest of
+this guide).
+
+Reply Not Received Error
+If you do not receive a reply after sending a message to the FedNow Service, check the queue message header for the venue ID (venueid) to
+ensure the ID is known to the FedNow Service.
+If an invalid Venue ID is specified, the message is dropped with no reply to the sender’s reply queue. For additional information on venue ID
+(venueid), refer to the FedNow Service Technical Specifications.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 6
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+External Validation Errors
+These validation errors are calculated against values that are outside the XML payload, such as queue name and protocol headers.
+
+Message Size Error – T501
+Error Description
+
+ISO message exceeds the maximum allowable size of 25,000 characters.
+
+Error Details
+
+The ISO 20022 schemas impose restrictions to message data that will in most cases prevent a message from exceeding the
+maximum allowable size.
+
+Resolution
+
+Reduce the message size by removing unnecessary XML elements.
+
+Notes
+
+Minimal viable sample messages are provided in the MyStandards platform that define the XML elements required for
+specific use cases.
+
+Message Signing Errors – T529
+The T529 error code indicates an error with either the signing key or the message signature. We recommend verifying the signing key first and, if
+the signing key is valid, troubleshoot the signature.
+Error Description
+
+Invalid message signature on ISO 20022 message. For the signature to be valid, it must be signed with the key owner’s private
+key that corresponds to an active public key that was previously created and validated by the FedNow Service.
+
+Error Details
+
+Indicates one of the following errors:
+
+Resolution
+
+•
+
+The queue message header for the signing key ID (fnsigs.028id) is not associated with a signing key in the sender’s
+Participant profile or that the key exists but has expired.
+
+•
+
+The queue message header for the message signature (fnsig) must be generated using as inputs: the signing key
+associated with the signing key ID queue message header (fnsigid), the signature algorithm specified by the signature
+algorithm queue message header (fnsigspec), or the message content. The T529 error code can indicate that this value is
+invalid because it cannot be replicated by the FedNow Service using the corresponding signing key stored in the Participant
+profile.
+
+•
+
+For a signing key error:
+- Make sure you are using an existing and unexpired signing key.
+- If an unexpired signing key is not available, add a new signing key to the Participant profile and use that one.
+For a message signature error:
+- Correct the signature generation code to produce the correct signature.
+- Follow the steps for using a valid signing key and try again with a valid signing key.
+
+•
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 7
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Notes
+
+•
+•
+•
+
+Instructions for adding a new signing key (if all of your active keys have expired) and signing a message can be found in the
+FedNow Service Technical Specifications.
+The signing key is the private key used for the digital signature. The verification (public) key is used for validating the
+signature.
+It is a best practice to revoke expired signing keys.
+
+Invalid Signature Error – T537
+Error Description
+Error Details
+
+Key signature algorithm not supported.
+The signature algorithm specified by a Participant in the fnsigspec protocol header is not a supported algorithm. You
+must use a signature algorithm supported by the FedNow Service. For more information, see the Technical Specifications
+document.
+
+Resolution
+
+Use a supported signature algorithm.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 8
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+For Schema Validation Errors – T505
+The T505 error code encapsulates all errors that occur during message intake into the FedNow Service. Validations ensure that the message XML
+is well-formed, contains only valid XML Unicode characters, and all elements and attributes conform to the FedNow ISO 20222 schema.
+Errors that occur at this stage of validation indicate the message is malformed and cannot be parsed. There may be XML elements that are not
+properly closed, have misplaced or extra quotes, contain characters that are invalid in an XML document, and other issues that can prevent an
+XML document from parsing. A visual inspection often exposes the issue. It also helps to use an XML text editor that can show these types of
+issues and offer help in correcting them.
+Error Description
+
+ISO message does not meet the FedNow Service ISO 20022 message specifications for one or multiple fields.
+
+Error Details
+
+Common ISO 20022 schema validation errors include:
+
+Resolution
+
+Notes
+
+Scenario 1:
+
+An XML element value does not conform to a w3c XSD datatype.
+
+Scenario 2:
+
+An XML element value does not conform to a regular expression defined in the ISO
+schema.
+
+Scenario 3:
+
+An XML element value must be a value from a list of defined values. In such cases, an
+enumeration of the eligible values is included in the ISO schema validator error message.
+
+Scenario 1:
+
+Review the w3c XSD datatype and choose a value that conforms.
+
+Scenario 2:
+
+Review the regular expression and choose a value that conforms.
+
+Scenario 3:
+
+Review the eligible values and choose a value that conforms.
+
+Scenario 1:
+
+•
+•
+
+This error often surfaces situations where business logic needs to be corrected for things such as
+conversion of a date and time to a valid format.
+w3c XSD datatype help can be found at XML Schema Date/Time Datatypes (w3schools.com).
+
+Scenario 2:
+
+•
+
+This error often surfaces situations where business logic needs to be corrected for things such as
+length of an identifier, a numeric limit, etc.
+
+Scenario 3:
+
+•
+
+This error often surfaces situations where business logic needs to be corrected for the correct
+code. You may need to consult with your business analyst for the correct code.
+The ISO 20022 public web site publishes enumerations of valid codes with corresponding
+descriptions.
+The XML schema (XSD) can be consulted for valid codes to ensure the correct code is chosen in
+advance of programming.
+
+•
+•
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 9
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Message Sender Authorization Errors – T516
+Message sender authorizations determine whether the message sender is authorized to perform the intended transaction.
+Error Description
+
+Invalid sending party or sending party information. A valid sending party is a Participant or a Service Provider, authorized to send
+messages on behalf of the Participant.
+
+Error Details
+
+•
+
+•
+
+Indicates the Participant who put the message on the queue is not authorized to use the queue or act on behalf of the
+transaction owner.
+Can also indicate that a key, other than the one derived from a valid signature, has been used.
+
+The system validates that either a master key or the right key for the Participant (target owner) is being used.
+Resolution
+
+Notes
+
+Do the following:
+•
+•
+
+Correct the target queue to a queue authorized for use by a valid sending party.
+Review the message values for the connecting party and the transaction owner.
+
+•
+•
+•
+
+Log into the FedNow Service User Interface to validate queues.
+Queue naming instructions and conventions can be found in the FedNow Service Operating Procedures.
+For additional questions, contact the Support Center.
+
+Rule Validation Errors
+All other error codes beginning with “T” result from errors that occur during message intake and validation that the message content is complete
+and viable for the intended transaction.
+Two sets of rules run:
+•
+•
+Note:
+
+One against the Business Application Header of all FedNow ISO XML messages.
+One that is specific to each individual message type (e.g., pacs.008).
+Validations are only performed against messages that the FedNow Service intakes from the participant OUT queues. This includes
+responses to senders from receivers (e.g., pacs.002).
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 10
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Business Application Header Rules
+All messages accepted by the FedNow Service are subject to the set of Business Application Header rules as described in this section.
+
+Clearing System Member Identification – T504
+Error Description
+
+Invalid clearing system member ID field. The ID in the “to” component should be the FedNow Service member ID (e.g.,
+"021150706").
+
+Error Details
+
+Indicates that the …/AppHdr/To/FIId/FinInstnId/ClrSysMmbId/MmbId element value does not equal the FedNow Service
+clearing system member identification (021150706).
+
+Resolution
+
+Set the …/AppHdr/To/FIId/FinInstnId/ClrSysMmbId/MmbId element value to “021150706.”
+
+Notes
+
+N/A
+
+Message Definition Identifier – T506
+Error Description
+
+Invalid message definition identifier. This identifier should be associated with the underlying message and must be a version
+that FedNow Service supports.
+
+Error Details
+
+Indicates that the …/AppHdr/MsgDefIdr element value is incorrect for the ISO document type.
+
+Resolution
+
+Set the …/AppHdr/MsgDefIdr element value to the correct ISO document type.
+
+Notes
+
+The FedNow ISO message technical wrapper combines FedNow-specific XML elements with the standard ISO 20022
+document elements. The …/AppHdr/MsgDefIdr element value maps the FedNow ISO message envelope to the
+corresponding ISO 20022 payload.
+
+Business Processing Date (Not Allowed) – T508
+Error Description
+
+Business processing date/time element is not allowed in the ISO message. This element is used only by the FedNow Service.
+
+Error Details
+
+Indicates that the …/AppHdr/BizPrcgDt element value exists in the message XML.
+
+Resolution
+
+Remove the …/AppHdr/BizPrcgDt element from the message XML.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 11
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Copy Duplicate (Not Allowed) – T509
+Error Description
+
+Copy duplicate element is not allowed in an ISO message sent by a Participant. This element is used only by the FedNow
+Service.
+
+Error Details
+
+Indicates that the …/AppHdr/CpyDplct element value exists in the message XML.
+
+Resolution
+
+Remove the …/AppHdr/CpyDplct element from the message XML.
+
+Notes
+
+N/A
+
+Related (Not Allowed) – T510
+Error Description
+
+Related element is not allowed in an ISO message sent by a Participant. This element is used only by the FedNow Service.
+
+Error Details
+
+Indicates that the …/AppHdr/Rltd element value exists in the message XML.
+
+Resolution
+
+Remove the …/AppHdr/Rltd element from the message XML.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 12
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Market Practice Identification – T542
+Error Description
+
+Invalid Market Practice Identifier.
+
+Error Details
+
+Indicates that the value in the …/AppHdr/MktPrctc/Id element is not the correct value for the given message type.
+
+Resolution
+
+Set the …/AppHdr/MktPrctc/Id element value to the correct market practice ID according to the following values for each
+message type:
+•
+•
+•
+•
+•
+•
+
+camt.029 (information request response): frb.fednow.irr.01
+camt.029 (return request response): frb.fednow.rrr.01
+camt.029 (request for payment cancellation request): frb.fednow.rcr.01
+camt.052 (account activity details): frb.fednow.aad.01
+camt.052 (account activity totals): frb.fednow.aat.01
+camt.052 (account balance report): frb.fednow.aba.01
+
+Note: For all other message types, set the value to: frb.fednow.01.
+Notes
+
+N/A
+
+Clock Start Header Errors – T555
+Error Description
+
+Incorrect format in fnclockstart field, refer to the Technical Specifications document for the correct format.
+
+Error Details
+
+The T555 error indicates that the fnclockstart queue message header was provided to override the default clock start date
+time, but the supplied value was not a valid zoned date time.
+
+Resolution
+
+Do one of the following:
+• Provide a valid zoned date time for the fnclockstart queue message header:
+•
+
+Notes
+
+Format: <date>T<time>-<zone offset from UTC>
+Example: 2022-10-17T14:31:08-04:00
+
+Omit the fnclockstart queue message header and use the default clock start date time taken from the …/AppHdr/CreDt
+element value.
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 13
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Common Message Rules
+Common message rules apply to most messages sent to the FedNow Service.
+
+Message Identification Format – T512
+Error Description
+
+Invalid message ID. A valid message ID must meet the following criteria:
+•
+•
+•
+
+Error Details
+
+Calendar date (CCYYMMDD) aligned with the Business Application Header (BAH) date.
+Connection Party ID (nine alphanumerical characters).
+Reference sequence assigned by sender (up to 18 characters).
+
+Indicates that the following path, for example …/Document/PmtRtr/GrpHdr/MsgId, does not conform to the required format:
+The first eight characters must be numeric:
+•
+•
+•
+
+The eight characters must represent a date in the format “YYYYMMDD.”
+The date must be the same as the date represented by the …/AppHdr/Fr/FIId/FinInstnId/ClrSysMmbId/CreDt element
+value.
+The date must fall within one day before or after the current calendar date.
+
+The next nine characters must be numeric:
+•
+•
+
+The nine characters must be the sender routing number (RTN).
+The nine characters must match the RTN specified as the …/AppHdr/Fr/FIId/FinInstnId/ClrSysMmbId/MmbId element
+value.
+
+The final part of the identifier represents a sender proprietary identifier. The identifier must be no more than 18 characters in
+length so that the entire length of the …/GrpHdr/MsgId element is no more than 35 characters (8+9+18=35).
+Invalid message ID. A valid message ID must meet the following criteria:
+•
+•
+
+Calendar date (CCYYMMDD) aligned with the Business Application Header (BAH) date.
+Connection Party ID (nine alphanumerical characters).
+
+Reference sequence assigned by sender (up to 18 characters).
+
+Resolution
+
+Compare the non-compliant …/Document/PmtRtr/GrpHdr/MsgId element value with the valid components:
+•
+•
+•
+•
+
+Notes
+
+…/AppHdr/Fr/FIId/FinInstnId/ClrSysMmbId/CreDt
+Current calendar date
+…/AppHdr/Fr/FIId/FinInstnId/ClrSysMmbId/MmbId
+Proprietary identifier
+
+This validation often fails when testing with static XML files that may contain stale data, such as outdated dates. Dynamically
+generating test message XML can reduce the occurrence of this validation error.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 14
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+ISO Message ID Duplicate Error – T517
+Error Description
+
+ISO message ID is a duplicate. The message ID must be unique.
+
+Error Details
+
+Indicates that the value in the message identification has been used in another message. Each ISO message must have a
+unique ID.
+
+Resolution
+
+Update the message identification to use a unique message ID.
+
+Notes
+
+N/A
+
+Country Code – T530
+Error Description
+
+Invalid country code. See the officially assigned code list on the ISO 20022 website.
+
+Error Details
+
+There are many elements across credit transfer messages that represent a country code, and all contain “Ctry” in the element
+name (e.g., Ctry, CtryOfRes, CtryOfBirth, PostalCtry). The T530 error code indicates that a country code element value is not
+an eligible value.
+
+Resolution
+
+Set the country code element value to an eligible code.
+
+Notes
+
+The ISO 20022 public website publishes enumerations of valid and invalid country codes.
+
+Original Message Name Identification – T524
+Error Description
+Error Details
+Resolution
+Notes
+
+Invalid original message name identification. A valid ISO message name as permitted in the ISO 20022 message specification
+rules is required.
+Indicates that the original message name identification of the ISO message did not include a message name identification as
+defined in the ISO specification rule.
+Refer to the ISO specification rule for the allowed message name identification.
+N/A
+
+Preferred Method Phone Contact – T519
+Error Description
+
+ISO message does not contain a phone number in the preferred contact method (PHON) field. A phone number must be
+provided when phone is the preferred contact method.
+
+Error Details
+
+Indicates that the message XML contains the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element value PHON
+but does not contain the corresponding …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PhneNb element.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 15
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Resolution
+
+Do one of the following:
+•
+•
+•
+
+Notes
+
+Remove the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element.
+Ensure the corresponding …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PhneNb is contained in the message XML.
+Set the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element value to match the intended corresponding
+element.
+Eligible combinations are:
+- PrefrdMtd: PHON; corresponding element: PhneNb
+- PrefrdMtd: CELL; corresponding element: MobNb
+- PrefrdMtd: MAIL; corresponding element: EmailAdr
+
+Unnecessary elements in the message XML can cause validation errors.
+
+Preferred Method Cell Contact – T520
+Error Description
+
+ISO message does not contain a mobile number in the preferred contact method (CELL) field. A mobile number must be
+provided when cell is the preferred contact method.
+
+Error Details
+
+Indicates that the message XML contains the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element value CELL
+but does not contain the corresponding …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/MobNb element.
+
+Resolution
+
+Do one of the following:
+•
+•
+•
+
+Remove the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element.
+Ensure the corresponding …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/MobNb is contained in the message XML.
+Set the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element value to match the intended corresponding
+element. Eligible combinations are:
+-
+
+PrefrdMtd: PHON; corresponding element: PhneNb
+PrefrdMtd: CELL; corresponding element: MobNb
+
+PrefrdMtd: MAIL; corresponding element: EmailAdr
+
+Notes
+
+Unnecessary elements in the message XML can cause validation errors.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 16
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Preferred Method Email Contact – T521
+Error Description
+
+ISO message does not contain an email address in the preferred contact method (MAIL) field. An email address must be
+provided when mail is the preferred contact method.
+
+Error Details
+
+Indicates that the message XML contains the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element value MAIL
+but does not contain the corresponding …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/EmailAdr element.
+
+Resolution
+
+Do one of the following:
+•
+•
+•
+
+Notes
+
+Remove the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element.
+Ensure the corresponding …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/EmailAdr is contained in the message XML.
+Set the …/Document/TxInf/RtrRsnInf/Orgtr/CtctDtls/PrefrdMtd element value to match the intended corresponding
+element. Eligible combinations are:
+- PrefrdMtd: PHON; corresponding element: PhneNb
+- PrefrdMtd: CELL; corresponding element: MobNb
+- PrefrdMtd: MAIL; corresponding element: EmailAdr
+
+Unnecessary elements in the message XML can cause validation errors.
+
+Credit Transfer Rules
+Credit transfer rules apply to customer payment returns.
+
+Local Instrument Code – T527
+Applies to pacs.004 and pacs.008.
+Error Description
+Error Details
+
+Invalid local instrument. The local instrument specifies the FedNow Service product code under which the message is sent.
+The code should be FDNA.
+Indicates that following path, for example …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtTpInf/LclInstrm/Prtry, does not
+contain an eligible value. The element value must be set to the correct code for the message type:
+• FDNA: pacs.004, pacs.008
+
+Resolution
+
+Set the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtTpInf/LclInstrm/Prtry element value to the correct code for the
+message type.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 17
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+pacs.004 Rules
+The pacs.004 message is used to specify a payment return request.
+
+Original Transaction Identification – T518
+Error Description
+
+ISO message does not contain an original transaction ID or original UETR. The ISO message must contain one or both.
+
+Error Details
+
+Two required elements — original transaction ID or original UETR — are missing.
+
+Resolution
+
+Update the message XML to include one or both of the following elements:
+
+•
+•
+Notes
+
+…/Document/PmtRtr/TxInf/OrgnlTxId
+…/Document/PmtRtr/TxInf/OrgnlUETR
+
+N/A
+
+Original Interbank Settlement Amount – T525
+Error Description
+
+Invalid original interbank settlement amount format. This amount must be:
+•
+•
+•
+
+Greater than $0.
+Maximum of two decimal places.
+In U.S. dollars
+
+Error Details
+
+Indicates that either the …/Document/PmtRtr/TxInf/OrgnlIntrBkSttlmAmt amount is incorrectly formatted or has specified
+the wrong currency code.
+
+Resolution
+
+•
+•
+
+Set the …/Document/PmtRtr/TxInf/OrgnlIntrBkSttlmAmt/@Ccy to “USD.”
+Set an amount greater than 0.
+
+If an optional decimal point is used, format the amount with no more than two digits after the decimal point.
+
+Notes
+
+The currency code eligible values may be expanded to include other currencies in the future.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 18
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Returned Interbank Settlement Amount – T528
+Error Description
+
+Invalid returned interbank settlement amount format. This amount must be:
+•
+•
+
+•
+
+Greater than $0.
+Maximum of two decimal places.
+In U.S. dollars.
+
+Error Details
+
+Indicates that either the …/Document/PmtRtr/TxInf/RtrdIntrBkSttlmAmt amount is incorrectly formatted or has specified the
+wrong currency code.
+
+Resolution
+
+•
+•
+
+Set the …/Document/PmtRtr/TxInf/RtrdIntrBkSttlmAmt/@Ccy to “USD.”
+Set an amount greater than 0.
+
+If an optional decimal point is used, format the amount with no more than two digits after the decimal point.
+Notes
+
+The currency code eligible values may be expanded to include other currencies in the future.
+
+Compensation Amount – T533
+Error Description
+
+Invalid compensation amount. This amount must be:
+•
+•
+
+•
+
+Greater than $0. (If $0, leave this field blank.)
+Maximum of two decimal places.
+In U.S. dollars.
+
+Error Details
+
+Indicates that either the …/Document/PmtRtr/TxInf/CmpstnAmt amount is incorrectly formatted or has specified the wrong
+currency code.
+
+Resolution
+
+•
+•
+
+•
+Notes
+
+Set the …/Document/PmtRtr/TxInf/CmpstnAmt /@Ccy to “USD.”
+Set an amount greater than 0.
+If an optional decimal point is used, format the amount with no more than two digits after the decimal point.
+
+The currency code eligible values may be expanded to include other currencies in the future.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 19
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Debtor Party – T526
+Error Description
+
+Insufficient information provided. When debtor of the return is a party, the debtor party, account and agent must be provided.
+
+Error Details
+
+Indicates that the message XML contains the …/Document/RtrChain/Dbtr/Pty element but does not contain both
+corresponding …/Document/RtrChain/DbtrAcct and …/Document/RtrChain/DbtrAgt elements.
+
+Resolution
+
+Do the following:
+• Remove the …/Document/RtrChain/Dbtr/Pty element.
+OR
+
+•
+Notes
+
+Ensure both the …/Document/RtrChain/DbtrAcct and …/Document/RtrChain/DbtrAgt elements are contained in
+the message XML.
+
+Unnecessary elements in the message XML can cause validation errors.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 20
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+pacs.008 Rules
+The pacs.008 message is used to specify a customer credit transfer request.
+
+Structured Remittance Information Maximum Length – T514
+Error Description
+
+Structured remittance information field exceeded the maximum length of 4,000 characters.
+
+Error Details
+
+Indicates that the …/Document/FiToFICstmrCdtTrf/CdtTrfTxInf/RmtInf/Str element exceeds 4,000 characters in length.
+
+Resolution
+
+Reduce the size of the Str elements.
+
+Notes
+
+•
+•
+
+The Rmtnf element allows multiple Str elements. Size may be exceeded by including too many Str elements.
+Review elements that allow freeform text that may be lengthy.
+
+Note: This calculation does not count the XML tags.
+
+Category Purpose – T535
+Error Description
+
+Invalid category purpose field. This field must begin with a C, B or G, followed by 3 alphanumeric characters.
+
+Error Details
+
+Indicates that the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtTpInf/CtgyPurp element value was not one of the
+eligible values.
+
+Resolution
+
+Set the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtTpInf/CtgyPurp element value to one of the eligible values: a field
+that begins with C, B or G, followed by 3 alphanumeric characters.
+
+Notes
+
+N/A
+
+Interbank Settlement Amount – T532
+Error Description
+
+Invalid interbank settlement amount format. This amount must be:
+•
+•
+•
+
+Greater than $0.
+Maximum of two decimal places.
+In U.S. dollars.
+
+Error Details
+
+Indicates that either the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/IntrBkSttlmAmt amount is incorrectly formatted or
+has specified the wrong currency code.
+
+Resolution
+
+Do the following:
+• Set the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/IntrBkSttlmAmt/@Ccy to “USD.”
+• Set an amount greater than 0.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 21
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+•
+
+Notes
+
+If optional decimal point is used, format the amount with no more than two digits after the decimal point.
+
+The currency code eligible values may be expanded to include other currencies in the future.
+
+Message Unstructured Remittance Information – T515
+Error Description
+
+Message contains both structured and unstructured remittance elements. The FedNow Service only allows one or the other
+within a single message.
+
+Error Details
+
+Indicates that the message XML contains both the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/RmtInf/Strd and
+…/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/RmtInf/Ustrd elements.
+
+Resolution
+
+Do one of the following:
+• Remove one of the elements.
+• Remove both elements.
+• Remove the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/RmtInf element.
+
+Notes
+
+Unnecessary elements in the message XML can cause validation errors.
+
+Transaction ID/UETR – T534
+Error Description
+
+ISO message does not contain the required transaction identification or UETR.
+
+Error Details
+
+Indicates that the message XML does not contain either the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtId/UETR or
+…/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtId/TxId element.
+
+Resolution
+
+Add the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtId/UETR and/or the
+…/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtId/TxId element to the message XML.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 22
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+pacs.009 Rules
+The pacs.009 is used to specify Liquidity Management Transfer (LMT) messages.
+
+Local Instrument Code – T527
+Error Description
+Error Details
+
+Invalid local instrument. The local instrument specifies the FedNow Service product code under which the message is sent.
+The code should be FDNA.
+Indicates that following path, for example …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtTpInf/LclInstrm/Prtry, does not
+contain an eligible value. The element value must be set to the correct code for the message type:
+• LMT1: pacs.009
+
+Resolution
+
+Set the …/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtTpInf/LclInstrm/Prtry element value to the correct code for the
+message type.
+
+Notes
+
+N/A
+
+Interbank Settlement Amount – T532
+Error Description
+
+Invalid interbank settlement amount format. This amount must be:
+•
+•
+
+•
+
+Greater than $0.
+Maximum of two decimal places.
+In U.S. dollars.
+
+Error Details
+
+Indicates that either the …/Document/FICdtTrf/CdtTrfTxInf/IntrBkSttlmAmt amount is incorrectly formatted or has specified
+the wrong currency code.
+
+Resolution
+
+Do the following:
+• Set the …/Document/FICdtTrf/CdtTrfTxInf/IntrBkSttlmAmt/@Ccy to “USD.”
+• Set an amount greater than 0.
+
+If an optional decimal point is used, format the amount with no more than two digits after the decimal point.
+Notes
+
+The currency code eligible values may be expanded to include other currencies in the future.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 23
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Transaction ID/UETR – T534
+Error Description
+
+ISO message does not contain the required transaction identification or UETR.
+
+Error Details
+
+Indicates that the message XML does not contain either the …/Document/FICdtTrf/CdtTrfTxInf/PmtId/UETR and/or the
+…/Document/FICdtTrf/CdtTrfTxInf/PmtId/TxId element.
+
+Resolution
+
+Add the …/Document/FICdtTrf/CdtTrfTxInf/PmtId/UETR or …/Document/FICdtTrf/CdtTrfTxInf/PmtId/TxId element to the
+message XML.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 24
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+pacs.002 Rules
+The pacs.002 message is used to specify a payment status report.
+
+Original Transaction Reference – T518
+Error Description
+
+ISO message does not contain an original transaction ID or original UETR. The ISO message must contain one or both.
+
+Error Details
+
+Indicates that the message XML does not contain one or both of the following elements:
+•
+
+…/Document/FIToFIPmtStsRpt/TxInfAndSts/OrgnlTxId
+
+…/Document/FIToFIPmtStsRpt/TxInfAndSts/OrgnlUETR
+Resolution
+
+Ensure that the message XML contains one or both of the …/Document/FIToFIPmtStsRpt/TxInfAndSts/OrgnlTxId or
+…/Document/FIToFIPmtStsRpt/TxInfAndSts/OrgnlUETR elements.
+
+Notes
+
+N/A
+
+Preferred Method Phone Contact – T519
+Error Description
+
+ISO message does not contain a phone number in the preferred contact method (PHON) field. A phone number must be
+provided when phone is the preferred contact method.
+
+Error Details
+
+Indicates that the message XML contains the
+…/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element value PHON but does not
+contain the corresponding …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PhneNb element.
+
+Resolution
+
+Do one of the following:
+•
+•
+•
+
+Notes
+
+Remove the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element.
+Ensure the corresponding …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PhneNb is contained
+in the message XML.
+Set the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element value to match the
+intended corresponding element. Eligible combinations are:
+- PrefrdMtd: PHON; corresponding element: PhneNb
+- PrefrdMtd: CELL; corresponding element: MobNb
+- PrefrdMtd: MAIL; corresponding element: EmailAdr
+
+Unnecessary elements in the message XML can cause validation errors.
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 25
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Preferred Method Cell Contact – T520
+Error Description
+
+ISO message does not contain a mobile number in the preferred contact method (CELL) field. A mobile number must be
+provided when cell is the preferred contact method.
+
+Error Details
+
+Indicates that the message XML contains the
+…/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element value CELL but does not contain
+the corresponding …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/MobNb element.
+
+Resolution
+
+Do one of the following:
+•
+•
+•
+
+Notes
+
+Remove the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element.
+Ensure the corresponding …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/MobNb is contained
+in the message XML.
+Set the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element value to match the
+intended corresponding element. Eligible combinations are:
+- PrefrdMtd: PHON; corresponding element: PhneNb
+- PrefrdMtd: CELL; corresponding element: MobNb
+- PrefrdMtd: MAIL; corresponding element: EmailAdr
+
+Unnecessary elements in the message XML can cause validation errors.
+
+Preferred Method Email Contact – T521
+Error Description
+
+ISO message does not contain an email address in the preferred contact method (MAIL) field. An email address must be
+provided when mail is the preferred contact method.
+
+Error Details
+
+Indicates that the message XML contains the
+…/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element value MAIL but does not contain
+the corresponding …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/EmailAdr element.
+
+Resolution
+
+Do one of the following:
+•
+•
+•
+
+Remove the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element.
+Ensure the corresponding …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/EmailAdr is
+contained in the message XML.
+Set the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Orgtr/CtctDtls/PrefrdMtd element value to match the
+intended corresponding element. Eligible combinations are:
+- PrefrdMtd: PHON; corresponding element: PhneNb
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 26
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+-
+
+Notes
+
+PrefrdMtd: CELL; corresponding element: MobNb
+PrefrdMtd: MAIL; corresponding element: EmailAdr
+
+Unnecessary elements in the message XML can cause validation errors.
+
+Rejection Status – T522
+Error Description
+
+ISO message does not contain the required status reason code for the rejected transaction.
+
+Error Details
+
+Indicates that the …/Document/FIToFIPmtStsRpt/TxInfAndSts/TxSts element value is RJCT, but the
+…/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf element does not exist in the message XML.
+
+Resolution
+
+Add the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf element to the message XML.
+
+Notes
+
+N/A
+
+Transaction Status Code – T523
+Error Description
+
+Invalid transaction status code. ISO messages must include one of the following eligible codes: ACTC, ACWP, ACCC, BLCK,
+PDNG or RJCT.
+
+Error Details
+
+Indicates that the …/Document/FIToFIPmtStsRpt/TxInfAndSts/TxSts element value is not one of the eligible status codes.
+
+Resolution
+
+Set the …/Document/FIToFIPmtStsRpt/TxInfAndSts/TxSts element value to one of the eligible status codes: ACTC, ACWP,
+ACCC, BLCK, PDNG, RJCT.
+
+Notes
+
+N/A
+
+Reason Code Additional Information – T536
+Error Description
+
+Insufficient information. If the ISO 20022 message used reason code NARR, additional information must be present.
+
+Error Details
+
+Indicates that the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/Rsn/Cd element value is NARR, but the
+…/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/AddtlInf element does not exist in the message XML.
+
+Resolution
+
+Add the …/Document/FIToFIPmtStsRpt/TxInfAndSts/StsRsnInf/AddtlInf element to the message XML.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 27
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+pacs.028 Rules
+The pacs.028 message is used to specify a payment status.
+
+Invalid Message Date Error – T543
+Error Description
+
+Invalid original message date. Original message date must be the current date or previous calendar date.
+
+Error Details
+
+This error occurs if a Participant sends a pacs.028 message to the FedNow Service requesting a payment status, but the date
+contained within the original message ID was not the current or previous calendar date.
+
+Resolution
+
+Ensure the message you are inquiring about is one that was sent/received in the previous or current calendar date
+
+Notes
+
+N/A
+
+camt.060 Rules
+The camt.060 message is used to request an account reporting.
+
+Account Balance Report Period – T538
+Error Description
+
+Account balance request cannot include a reporting period because the balance is as of a particular date and time.
+
+Error Details
+
+Indicates that the …/Document/AcctRptgReq/RptgReq/Id element value is ABAR, but the (unallowed)
+…/Document/AcctRptgReq/RptgReq/RptgPrd element is present.
+
+Resolution
+
+Remove the …/Document/AcctRptgReq/RptgReq/RptgPrd element from the message XML.
+
+Notes
+
+N/A
+
+Account Balance Account Type – T539
+Error Description
+
+Account balance request must include the account type.
+
+Error Details
+
+Indicates that the …/Document/AcctRptgReq/RptgReq/Id element value is ABAR, but the required
+…/Document/AcctRptgReq/RptgReq/Acct/Tp element is not present.
+
+Resolution
+
+Add the …/Document/AcctRptgReq/RptgReq/Acct/Tp element to the message XML.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 28
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Account Balance Member Identification – T540
+Error Description
+
+If an account balance report (ABAR), account activity totals report (AATR or IATR) or an account activity details report (AADR)
+are requested, then the member identification field must be the FedNow Service Connection Party identifier of the requestor of
+the report(s) and must match the “From” field in BAH.
+
+Error Details
+
+Indicates that the …/Document/AcctRptgReq/RptgReq/Id element value is ABAR, but the
+…/Document/AcctRptgReq/RptgReq/AcctOwnr/Agt/FinInstnId/ClrSysMmbId/MmbId element value is not equal to the
+…/AppHdr/Fr/FIId/FinInstnId/ClrSysMmbId/MmbId element value.
+
+Resolution
+
+Set the …/Document/AcctRptgReq/RptgReq/AcctOwnr/Agt/FinInstnId/ClrSysMmbId/MmbId element and
+…/AppHdr/Fr/FIId/FinInstnId/ClrSysMmbId/MmbId element to equal values.
+
+Notes
+
+N/A
+
+Intraday Reports – T545
+Error Description
+
+Reporting Period and Account Type are not allowed for an intraday account activity totals report (IATR) or a correspondent
+intraday account activity totals report (CITR).
+
+Error Details
+
+Indicates that the …/Document/AcctRptgReq/RptgReq/Id element value is either IATR or CITR, but the unallowed
+…/Document/AcctRptgReq/RptgReq/RptgPrd element and/or …/Document/AcctRptgReq/RptgReq/Acct/Tp element is
+present.
+
+Resolution
+
+Do one of the following:
+• Remove the …/Document/AcctRptgReq/RptgReq/RptgPrd element.
+• Remove the …/Document/AcctRptgReq/RptgReq/Acct/Tp element.
+
+Notes
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 29
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Correspondent Reports (CATR and CITR) – T546
+Error Description
+
+Invalid account ID for message type. A correspondent account activity totals report cannot be requested for a single RTN.
+
+Error Details
+
+Indicates that the …/Document/AcctRptgReq/RptgReq/Id element value is CATR or CITR, but the
+…/Document/AcctRptgReq/Acct/Othr/Id element value is not the correspondent account ID indicator “000000000.”
+
+Resolution
+
+Do the following:
+•
+
+Notes
+
+Change the …/Document/AcctRptgReq/RptgReq/Id element value to AATR or IATR if the requester is not Requesting a
+correspondent totals reportChange the …/Document/AcctRptgReq/Acct/Othr/Id element value to “000000000.”
+
+Correspondent activity totals report (CATR) , correspondent intraday totals report (CITR).
+
+End-of-Day Reports – T557
+Error Description
+
+If an (end-of-day) account activity totals report (AATR), an (end-of-day) account activity details report (AADR), a (end-of-day)
+correspondent account activity totals report (CATR), or a (end-of-day) correspondent account activity details report (CADR) is
+requested, then Reporting Period is mandatory and Account Type is not allowed.
+
+Error Details
+
+Indicates that the …/Document/AcctRptgReq/RptgReq/Id element value is one of the following: AATR, AADR, CATR or
+CADR, but the concurrently required …/Document/AcctRptgReq/RptgReq/RptgPrd element is not present (or is
+incomplete), and/or (unallowed) …/Document/AcctRptgReq/RptgReq/Acct/Tp element is present.
+
+Resolution
+
+Do the following:
+• Remove the …/Document/AcctRptgReq/RptgReq/Acct/Tp element.
+• Add the …/Document/AcctRptgReq/RptgReq/RptgPrd element to the message XML.
+• Add the …/Document/AcctRptgReq/RptgReq/RptgPrd /FrToDt/FrDt element to the message XML.
+
+Notes
+
+N/A
+
+Balance Inquiry Service Error – T600
+Error Description
+Error Details
+Resolution
+Notes
+
+Balance inquiry service not available or balance inquiry not allowed for this account.
+N/A
+
+Wait approximately five minutes and try again.
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 30
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+admi.004 Rules
+The admi.004 message is used to specify a Participant broadcast.
+
+Event Time Future Dated – T580
+Error Description
+
+Event Time future dated.
+
+Error Details
+
+Indicates that the .../Document/SysEvtNtfctn/EvtInf/EvtTm element value represents a date and time in the future.
+
+Resolution
+
+Set the .../Document/SysEvtNtfctn/EvtInf/EvtTm element value to a date and time that is not in the future.
+
+Notes
+
+N/A
+
+Event Code – T581
+Error Description
+
+Error in Event Code field. If Event Code-FPON/FPOF, then Event Parameter must be 9-digit RTN. If Event CodeFPCD/FPCR, then Event Parameter must be 7-digit hexa-decimal (Connection Point ID).
+
+Error Details
+
+Indicates that the .../Document/SysEvtNtfctn/EvtInf/EvtCd element value is not one of: PING, FPCD, FPCR, FPOF or FPON,
+or the .../Document/SysEvtNtfctn/EvtInf/EvtCd element value is FPOF or FPON and the
+.../Document/SysEvtNtfctn/EvtInf/EvtParam element value is not nine characters in length, or the
+.../Document/SysEvtNtfctn/EvtInf/EvtCd element value is FPCD or FPCR and the
+.../Document/SysEvtNtfctn/EvtInf/EvtParam element value is not seven characters in length.
+Do the following:
+• Set the .../Document/SysEvtNtfctn/EvtInf/EvtCd element value to one the following: PING, FPCD, FPCR, FPOF or
+FPON.
+
+Resolution
+
+•
+
+Notes
+
+For a .../Document/SysEvtNtfctn/EvtInf/EvtCd element value of FPOF or FPON, set the
+.../Document/SysEvtNtfctn/EvtInf/EvtParam element value to nine characters in length. For a
+.../Document/SysEvtNtfctn/EvtInf/EvtCd element value of FPCD or FPCR, set the
+.../Document/SysEvtNtfctn/EvtInf/EvtParam element value to seven characters in length.
+
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 31
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Missing Connection Point – T584
+Error Description
+Error Details
+Resolution
+Notes
+
+At least one connection point must be connected per Connection party.
+If a Participant requests to disconnect a connection point and no active connection points remain for the Connection party, this
+error message is generated.
+Ensure there is at least one active connection point per Connection party.
+N/A
+
+admi.007 Rules
+The admi.007 message is used to specify a receipt acknowledgement. Admi.007 messages are validated against the ISO schema and business
+header rules.
+
+Referenced Message Not Found – T544
+Error Description
+Error Details
+Resolution
+Notes
+
+Status code is incorrect
+Participants sending an admi.007 must use the code TS02
+Populate the status code field with TS02
+N/A
+
+Invalid Status Code – T547
+Error Description
+Error Details
+Resolution
+Notes
+
+Message referenced in admi.007 is not found.
+The referenced message was not processed through the FedNow system.
+Correct the original message to reference the one that was processed through the FedNow Service.
+N/A
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 32
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+FedNow® Service Message Validation & Error Handling Guide
+
+Revision History
+Date
+
+Version
+
+Revisions
+
+January 26, 2023
+April 5, 2024
+May 28, 2024
+
+1.0
+1.1
+
+First release of the FedNow Service Message Validation & Error Handling Guide.
+Corrected the description of the T580 error message.
+• Updated the description and resolution for the T535 error message.
+• Changed “FRB Support Center” to “Support Center.”
+
+1.2
+
+© 2023-2024 Federal Reserve Banks. FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+| Page 33
+
+

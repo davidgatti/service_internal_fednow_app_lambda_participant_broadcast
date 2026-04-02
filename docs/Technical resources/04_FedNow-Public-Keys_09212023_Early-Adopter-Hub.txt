@@ -1,0 +1,78 @@
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+FedNow Service Active Public Key Information
+© 2023 Federal Reserve Banks. Pilot Confidential/FedNow Confidential Information. Materials are not to
+be used without consent.
+Participants will receive the FedNow broadcast (admi.004) with FNKY code when a new public key is
+established. They will then need to download the key via the FedNow interface. Active FedNow public
+keys will also be available for download in the Onboarding and Testing section of the FedNow Early
+Adopter Hub, under FedNow Service Technical Specifications and Testing Resources (only for CTE).
+Participants need to upload the added FedNow public key into their system to ensure that incoming
+messages from the FedNow Service can be validated. Participants also need to remove the expired
+FedNow public key from their system. As a reminder, we maintain 3 active keys in the Customer Testing
+Environment and plan to do so in the Production environment as well. Note that the FedNow Service
+typically uses the oldest key for signing messages.
+*************************************************************************************
+The below information can also be downloaded from the FedNow interface.
+Key #1:
+Key ID- ede7f2c0af2143da8fca3d9257228ea6c4700205f7e5f22ab1cd4ce077c93997
+
+Creation Date – 09/20/2023
+Expiration Date – 11/01/2023
+Key:
+-----BEGIN PUBLIC KEY----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzUdcYgymlplyaEQMukdB
+e8HBgHsqyyZtoGN0ErsSViXXP626wGuOa/ksGHlegm09VNlUNOcAogXmkcHEaNuW
+DyGapVaV2UwjguhHv3GWHWNKOfl9JVwo3KbHDWpjDnVB0AVQ+CcBcDkcgcQf8hOd
+xoLLKC3xpWNVry38CVcZrP2BFJnx4Vs+PhwGDOgKWPYNt4GAZqRGZF7aMw/qqZZz
+M/iMJtQs8xG/f17HYUhobP5ZWiqitoyLgSI0ZdBqMLtWBht2H7dnkSQzTN06LBXN
+vlBT1HMpgAExWqpos0eZ0BsZpQ5B4WelL4zAMFxnm8y7Z+cVagr+B4mEn27Q6jAT
+xQIDAQAB
+-----END PUBLIC KEY-----
+
+©2023 Federal Reserve Banks. Pilot Confidential/FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+Page 1 of 2
+
+|
+
+INTERNAL FR/OFFICIAL USE // EXTERNAL
+
+Key #2:
+Key ID- a26da9df905f5150e02afe66024b0c48e9c0e33b10dd9a7e6fb02265e2a9eb36
+
+Creation Date – 09/06/2023
+Expiration Date – 10/18/2023
+Key:
+-----BEGIN PUBLIC KEY-----
+
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsrJK25+C0Lut8zBM49jt
+pSnZ7xAG3GPJ5gzsS1wSrpmRTXRNNlh7B3vDc4/m8wYFRn4FDXy3nR775uP1+k7Q
+sxvOwps7Upalf1Ve8Is6GfxteDszsLwqqQ65GrlaSMGwPgRMQUVKrATG0fXnwH0y
+nku9WnfujZ0F+Q2W+wNHKG1i5Yq7JhC+wecza+0VX4YkoptyFnO2ByybtPvdEiZH
+Pyl4XsvZ3mRAaEMnOjWHFCv1QnI58X2e6shkOTtRKLwA7DKdVl/0QiBSRYi7q6YC
+jiRDgLnSnEXbRfvhlwKBSRzjIVIC3pvE1Z4Qp0L7y8yLJi6Qz5+MkIDQKh270ZpC
+tQIDAQAB
+-----END PUBLIC KEY-----
+
+Key #3:
+Key ID- 57e67a7ba2479cbb993d12a551d0237431dc14216c840b188369966a28ff9985
+
+Creation Date – 08/23/2023
+Expiration Date – 10/04/2023
+Key:
+-----BEGIN PUBLIC KEY----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxAGlCfwqbWG0n5JF/ZNE
+B5Ka+eiE/zhIxTTyf5y2nrkSU510t5+tjwtgQSm8xjfw6hQ8/hgi6LrT9pPSCvpS
+BbT0xlzaBp8MSMNMeglYuAaRpzMUKNkGHL/9sGUg+klmMly+BEEuwnGLBZ+1J/fV
+OZzZPSj1XCsKG36xVp5XahQ0ztbwfvRItNkRtNqZQdjP9vhWQYXVIlvtTutp3wj4
+1gn7rrIZiJvFe3BDw3btmmZDQP0hyBNtEnXL8XDAx/GvdEV9Za+VUrtkdj5A1IP8
+5aJwfpUDqmlFDBwKbHd3lKfb/TJALDGkGIpQfUfmvoH2rfRh8qRuXJsddcu1fbkx
+hwIDAQAB
+-----END PUBLIC KEY-----
+
+©2023 Federal Reserve Banks. Pilot Confidential/FedNow Confidential Information. Materials are not to be used or shared without consent.
+
+Page 2 of 2
+
+|
+
+

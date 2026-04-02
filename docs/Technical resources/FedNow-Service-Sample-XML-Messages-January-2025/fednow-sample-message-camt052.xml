@@ -1,0 +1,129 @@
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Legal Notices
+
+The Federal Reserve Banks are providing this FedNow Service sample message for
+illustrative purposes only. Please refer to the FedNow Service Technical
+Specifications and FedNow Service ISO 20022 Implementation Guide for additional
+details on how to apply the sample message. The Reserve Banks provide no
+warranties, are not responsible for its accuracy or use within your
+environment, and disclaim all liability in connection with your use of this
+sample message. Use of the information in your applications is subject to your
+internal quality and security control processes.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ -->
+<FedNowOutgoing xmlns="urn:fednow:outgoing:v001">
+<FedNowOutgoingMessage>
+<FedNowAccountActivityTotalsReport>
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+<Fr>
+<FIId>
+<FinInstnId>
+<ClrSysMmbId>
+<MmbId>021150706</MmbId>
+</ClrSysMmbId>
+</FinInstnId>
+</FIId>
+</Fr>
+<To>
+<FIId>
+<FinInstnId>
+<ClrSysMmbId>
+<MmbId>111111111</MmbId>
+</ClrSysMmbId>
+</FinInstnId>
+</FIId>
+</To>
+<BizMsgIdr>20230922111111111IATRresponse</BizMsgIdr>
+<MsgDefIdr>camt.052.001.08</MsgDefIdr>
+<MktPrctc>
+<Regy>www2.swift.com/mystandards/#/group/Federal_Reserve_Financial_Services/FedNow_Service</Regy>
+<Id>frb.fednow.aad.01</Id>
+</MktPrctc>
+<CreDt>2023-09-02T19:31:13+04:00</CreDt>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.052.001.08">
+<BkToCstmrAcctRpt>
+<GrpHdr>
+<MsgId>IATR</MsgId>
+<CreDtTm>2023-09-22T18:47:02+04:00</CreDtTm>
+<MsgPgntn>
+<PgNb>1</PgNb>
+<LastPgInd>true</LastPgInd>
+</MsgPgntn>
+<OrgnlBizQry>
+<MsgId>20230922111111111IATRrequest1</MsgId>
+<MsgNmId>camt.060.001.05</MsgNmId>
+<CreDtTm>2023-09-22T15:58:23+04:00</CreDtTm>
+</OrgnlBizQry>
+</GrpHdr>
+<Rpt>
+<Id>IDAY</Id>
+<CreDtTm>2023-09-22T00:00:00+04:00</CreDtTm>
+<Acct>
+<Id>
+<Othr>
+<Id>111111111</Id>
+</Othr>
+</Id>
+</Acct>
+<TxsSummry>
+<TtlCdtNtries>
+<NbOfNtries>1</NbOfNtries>
+<Sum>562.08</Sum>
+</TtlCdtNtries>
+<TtlDbtNtries>
+<NbOfNtries>1</NbOfNtries>
+<Sum>125</Sum>
+</TtlDbtNtries>
+<TtlNtriesPerBkTxCd>
+<NbOfNtries>0</NbOfNtries>
+<BkTxCd>
+<Prtry>
+<Cd>RJTS</Cd>
+</Prtry>
+</BkTxCd>
+<Dt>
+<DtTm>2023-09-22T08:27:47+04:00</DtTm>
+</Dt>
+</TtlNtriesPerBkTxCd>
+<TtlNtriesPerBkTxCd>
+<NbOfNtries>0</NbOfNtries>
+<BkTxCd>
+<Prtry>
+<Cd>RJTR</Cd>
+</Prtry>
+</BkTxCd>
+<Dt>
+<DtTm>2023-09-22T18:47:02+04:00</DtTm>
+</Dt>
+</TtlNtriesPerBkTxCd>
+<TtlNtriesPerBkTxCd>
+<NbOfNtries>0</NbOfNtries>
+<BkTxCd>
+<Prtry>
+<Cd>SENT</Cd>
+</Prtry>
+</BkTxCd>
+<Dt>
+<DtTm>2023-09-22T18:47:02+04:00</DtTm>
+</Dt>
+</TtlNtriesPerBkTxCd>
+<TtlNtriesPerBkTxCd>
+<NbOfNtries>0</NbOfNtries>
+<BkTxCd>
+<Prtry>
+<Cd>RCVD</Cd>
+</Prtry>
+</BkTxCd>
+<Dt>
+<DtTm>2023-09-22T18:47:02+04:00</DtTm>
+</Dt>
+</TtlNtriesPerBkTxCd>
+</TxsSummry>
+</Rpt>
+</BkToCstmrAcctRpt>
+</Document>
+</FedNowAccountActivityTotalsReport>
+</FedNowOutgoingMessage>
+</FedNowOutgoing>

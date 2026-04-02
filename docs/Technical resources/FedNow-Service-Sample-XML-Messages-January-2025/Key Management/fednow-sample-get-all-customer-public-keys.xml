@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Legal Notices
+
+The Federal Reserve Banks are providing this FedNow Service sample message for
+illustrative purposes only. Please refer to the FedNow Service Technical
+Specifications and FedNow Service ISO 20022 Implementation Guide for additional
+details on how to apply the sample message. The Reserve Banks provide no
+warranties, are not responsible for its accuracy or use within your
+environment, and disclaim all liability in connection with your use of this
+sample message. Use of the information in your applications is subject to your
+internal quality and security control processes.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+
+<FedNowIncoming xmlns="urn:fednow:incoming:v001" xmlns:ke="urn:fednow:security:external:v001">
+    <FedNowIncomingMessage>
+        <FedNowIncomingMessageSignatureManagement>
+            <SenderId>111111111</SenderId>
+            <ke:GetAllCustomerPublicKeys/>
+        </FedNowIncomingMessageSignatureManagement>
+    </FedNowIncomingMessage>
+</FedNowIncoming>

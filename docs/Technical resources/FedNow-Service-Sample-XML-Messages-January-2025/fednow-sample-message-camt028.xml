@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Legal Notices
+
+The Federal Reserve Banks are providing this FedNow Service sample message for
+illustrative purposes only. Please refer to the FedNow Service Technical
+Specifications and FedNow Service ISO 20022 Implementation Guide for additional
+details on how to apply the sample message. The Reserve Banks provide no
+warranties, are not responsible for its accuracy or use within your
+environment, and disclaim all liability in connection with your use of this
+sample message. Use of the information in your applications is subject to your
+internal quality and security control processes.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+
+<FedNowIncoming xmlns="urn:fednow:incoming:v001">
+    <FedNowIncomingMessage>
+        <FedNowAdditionalPaymentInformation>
+            <AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+                <Fr>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>111111111</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </Fr>
+                <To>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>021150706</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </To>
+                <BizMsgIdr>20230727111111111RFISc4Step5MsgId</BizMsgIdr>
+                <MsgDefIdr>camt.028.001.09</MsgDefIdr>
+                <MktPrctc>
+                    <Regy>www2.swift.com/mystandards/#/group/Federal_Reserve_Financial_Services/FedNow_Service</Regy>
+                    <Id>frb.fednow.01</Id>
+                </MktPrctc>
+                <CreDt>2023-07-27T17:30:00-04:00</CreDt>
+            </AppHdr>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.028.001.09">
+                <AddtlPmtInf>
+                    <Assgnmt>
+                        <Id>20230727111111111RFISc4Step5MsgId</Id>
+                        <Assgnr>
+                            <Agt>
+                                <FinInstnId>
+                                    <ClrSysMmbId>
+                                        <ClrSysId>
+                                            <Cd>USABA</Cd>
+                                        </ClrSysId>
+                                        <MmbId>111111111</MmbId>
+                                    </ClrSysMmbId>
+                                </FinInstnId>
+                            </Agt>
+                        </Assgnr>
+                        <Assgne>
+                            <Agt>
+                                <FinInstnId>
+                                    <ClrSysMmbId>
+                                        <ClrSysId>
+                                            <Cd>USABA</Cd>
+                                        </ClrSysId>
+                                        <MmbId>222222222</MmbId>
+                                    </ClrSysMmbId>
+                                </FinInstnId>
+                            </Agt>
+                        </Assgne>
+                        <CreDtTm>2023-07-27T17:30:00-04:00</CreDtTm>
+                    </Assgnmt>
+                    <Case>
+                        <Id>RFI_pacs.008CaseId015</Id>
+                        <Cretr>
+                            <Agt>
+                                <FinInstnId>
+                                    <ClrSysMmbId>
+                                        <ClrSysId>
+                                            <Cd>USABA</Cd>
+                                        </ClrSysId>
+                                        <MmbId>222222222</MmbId>
+                                    </ClrSysMmbId>
+                                </FinInstnId>
+                            </Agt>
+                        </Cretr>
+                    </Case>
+                    <Undrlyg>
+                        <IntrBk>
+                            <OrgnlGrpInf>
+                                <OrgnlMsgId>20230727111111111RFISc3Step1MsgId</OrgnlMsgId>
+                                <OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>
+                                <OrgnlCreDtTm>2023-07-27T16:12:58-04:00</OrgnlCreDtTm>
+                            </OrgnlGrpInf>
+                            <OrgnlInstrId>RFIScenario3InstrId001</OrgnlInstrId>
+                            <OrgnlEndToEndId>RFIScenario3EtoEId001</OrgnlEndToEndId>
+                            <OrgnlTxId>RFIScenario3TxId001</OrgnlTxId>
+                            <OrgnlIntrBkSttlmAmt Ccy="USD">999</OrgnlIntrBkSttlmAmt>
+                            <OrgnlIntrBkSttlmDt>2023-07-27</OrgnlIntrBkSttlmDt>
+                        </IntrBk>
+                    </Undrlyg>
+                    <Inf>
+                        <RmtInf>
+                            <Ustrd>Series of 5 payments of $ 999.00 were instructed because of account limitations to pay invoice 234/333/33 of $4,995.00 in one payment.</Ustrd>
+                        </RmtInf>
+                    </Inf>
+                </AddtlPmtInf>
+            </Document>
+        </FedNowAdditionalPaymentInformation>
+    </FedNowIncomingMessage>
+</FedNowIncoming>

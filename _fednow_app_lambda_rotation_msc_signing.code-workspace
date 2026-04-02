@@ -1,0 +1,97 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "file",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
+        "files.associations": {
+            "*.json": "json"
+        },
+        "json.validate.enable": true,
+        "json.format.enable": true,
+        "[json]": {
+            "editor.insertSpaces": true,
+            "editor.tabSize": 4,
+            "editor.formatOnSave": false,
+            "editor.defaultFormatter": "vscode.json-language-features",
+            "editor.quickSuggestions": {
+                "strings": true
+            }
+        },
+        "[jsonc]": {
+            "editor.insertSpaces": true,
+            "editor.tabSize": 4,
+            "editor.formatOnSave": false,
+            "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "search.exclude": {
+            "**/node_modules": true,
+            "**/CloudFormation.json": true,
+            "**/.git": true
+        },
+        "files.exclude": {
+            "**/CloudFormation.json": false
+        },
+        "editor.rulers": [],
+        "explorer.openEditors.visible": 1
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Build CloudFormation",
+                "type": "shell",
+                "command": "grapes",
+                "args": [
+                    "-s",
+                    "."
+                ],
+                "group": {
+                    "kind": "build",
+                    "isDefault": true
+                },
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": false,
+                    "panel": "shared"
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "Validate CloudFormation",
+                "type": "shell",
+                "command": "aws",
+                "args": [
+                    "cloudformation",
+                    "validate-template",
+                    "--template-body",
+                    "file://CloudFormation.json"
+                ],
+                "group": "test",
+                "dependsOn": "Build CloudFormation",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": false,
+                    "panel": "shared"
+                }
+            }
+        ]
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-vscode.vscode-json",
+			"gatti.aetherion-cpu-monitor"
+        ]
+    }
+}

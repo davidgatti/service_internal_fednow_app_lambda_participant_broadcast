@@ -1,0 +1,22 @@
+{
+    "entry": [
+        "index.js",
+        ".loader.js",
+        "src/modules/*.js",
+        ".eslint/custom/rules/*.js"
+    ],
+    "project": [
+        "**/*.js"
+    ],
+    "ignoreDependencies": [
+        "globals",
+        "pino-pretty"
+    ],
+    "ignoreBinaries": [
+        "lint-staged",
+        "npm-check-updates"
+    ],
+    "rules": {
+        "exports": "off"
+    }
+}

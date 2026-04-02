@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Legal Notices
+
+The Federal Reserve Banks are providing this FedNow Service sample message for
+illustrative purposes only. Please refer to the FedNow Service Technical
+Specifications and FedNow Service ISO 20022 Implementation Guide for additional
+details on how to apply the sample message. The Reserve Banks provide no
+warranties, are not responsible for its accuracy or use within your
+environment, and disclaim all liability in connection with your use of this
+sample message. Use of the information in your applications is subject to your
+internal quality and security control processes.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+
+<FedNowIncoming xmlns="urn:fednow:incoming:v001">
+    <FedNowIncomingMessage>
+        <FedNowAccountReportingRequest>
+            <AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+                <Fr>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>111111111</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </Fr>
+                <To>
+                    <FIId>
+                        <FinInstnId>
+                            <ClrSysMmbId>
+                                <MmbId>021150706</MmbId>
+                            </ClrSysMmbId>
+                        </FinInstnId>
+                    </FIId>
+                </To>
+                <BizMsgIdr>20230921111111111ABARMMrequest1</BizMsgIdr>
+                <MsgDefIdr>camt.060.001.05</MsgDefIdr>
+                <MktPrctc>
+                    <Regy>www2.swift.com/mystandards/#/group/Federal_Reserve_Financial_Services/FedNow_Service</Regy>
+                    <Id>frb.fednow.01</Id>
+                </MktPrctc>
+                <CreDt>2023-09-21T18:30:38+04:00</CreDt>
+            </AppHdr>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.060.001.05">
+                <AcctRptgReq>
+                    <GrpHdr>
+                        <MsgId>20230921111111111ABARMMrequest1</MsgId>
+                        <CreDtTm>2023-09-21T13:29:32+04:00</CreDtTm>
+                    </GrpHdr>
+                    <RptgReq>
+                        <Id>ABAR</Id>
+                        <ReqdMsgNmId>camt.052.001.08</ReqdMsgNmId>
+                        <Acct>
+                            <Id>
+                                <Othr>
+                                    <Id>111111111</Id>
+                                </Othr>
+                            </Id>
+                            <Tp>
+                                <Prtry>M</Prtry>
+                            </Tp>
+                        </Acct>
+                        <AcctOwnr>
+                            <Agt>
+                                <FinInstnId>
+                                    <ClrSysMmbId>
+                                        <MmbId>111111111</MmbId>
+                                    </ClrSysMmbId>
+                                </FinInstnId>
+                            </Agt>
+                        </AcctOwnr>
+                    </RptgReq>
+                </AcctRptgReq>
+            </Document>
+        </FedNowAccountReportingRequest>
+    </FedNowIncomingMessage>
+</FedNowIncoming>
