@@ -11,7 +11,8 @@ module.exports = async (container) => {
     let {
         xml_template,
         event_code,
-        sender_rtn
+        sender_rtn,
+        participant_rtn
     } = container.req;
 
     //
@@ -36,6 +37,7 @@ module.exports = async (container) => {
         let replacements = {
             EVENT_CODE: event_code,
             SENDER_RTN: sender_rtn,
+            PARTICIPANT_RTN: participant_rtn,
             EVENT_TIME: event_time,
             BIZ_MSG_ID: biz_msg_id
         };

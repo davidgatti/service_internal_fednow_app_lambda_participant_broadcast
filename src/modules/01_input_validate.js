@@ -59,6 +59,20 @@ module.exports = async (container) => {
     container.req.event_code = event_code;
 
     //
+    //  Validate participant_rtn is present
+    //
+    if (!container.req.participant_rtn) {
+
+        //
+        //  Participant RTN identifies the participant the broadcast is about
+        //
+        throw new Error(
+            'Missing required field: participant_rtn'
+        );
+
+    }
+
+    //
     //  Validate SQS_QUEUE_URL environment variable
     //
     if (!process.env.SQS_QUEUE_URL) {

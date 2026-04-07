@@ -33,7 +33,7 @@
                 <SysEvtNtfctn>
                     <EvtInf>
                         <EvtCd>{{EVENT_CODE}}</EvtCd>
-                        <EvtParam>{{SENDER_RTN}}</EvtParam>
+                        <EvtParam>{{PARTICIPANT_RTN}}</EvtParam>
                         <EvtTm>{{EVENT_TIME}}</EvtTm>
                     </EvtInf>
                 </SysEvtNtfctn>

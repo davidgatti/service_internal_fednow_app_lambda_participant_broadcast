@@ -98,7 +98,7 @@ describe('01_input_validate', () => {
         //  Create container with signon action
         //
         let container = {
-            req: { action: 'signon' },
+            req: { action: 'signon', participant_rtn: '011054317' },
             res: {}
         };
 
@@ -128,7 +128,7 @@ describe('01_input_validate', () => {
         //  Create container with signoff action
         //
         let container = {
-            req: { action: 'signoff' },
+            req: { action: 'signoff', participant_rtn: '011054317' },
             res: {}
         };
 
@@ -189,6 +189,28 @@ describe('01_input_validate', () => {
     });
 
     //
+    //  Should throw when participant_rtn is missing
+    //
+    test('throws when participant_rtn is missing', async () => {
+
+        //
+        //  Create container without participant_rtn
+        //
+        let container = {
+            req: { action: 'signon' },
+            res: {}
+        };
+
+        //
+        //  Should throw with clear error
+        //
+        await expect(input_validate(container)).rejects.toThrow(
+            'Missing required field: participant_rtn'
+        );
+
+    });
+
+    //
     //  Should throw when SQS_QUEUE_URL is missing
     //
     test('throws when SQS_QUEUE_URL is not set', async () => {
@@ -202,7 +224,7 @@ describe('01_input_validate', () => {
         //  Create container with valid action
         //
         let container = {
-            req: { action: 'signon' },
+            req: { action: 'signon', participant_rtn: '011054317' },
             res: {}
         };
 
@@ -229,7 +251,7 @@ describe('01_input_validate', () => {
         //  Create container with valid action
         //
         let container = {
-            req: { action: 'signon' },
+            req: { action: 'signon', participant_rtn: '011054317' },
             res: {}
         };
 

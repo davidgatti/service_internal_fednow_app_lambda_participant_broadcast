@@ -64,9 +64,10 @@ describe('03_xml_placeholders_replace', () => {
         //
         let container = {
             req: {
-                xml_template: '<EvtCd>{{EVENT_CODE}}</EvtCd><EvtParam>{{SENDER_RTN}}</EvtParam><EvtTm>{{EVENT_TIME}}</EvtTm><BizMsgIdr>{{BIZ_MSG_ID}}</BizMsgIdr><MmbId>{{SENDER_RTN}}</MmbId>',
+                xml_template: '<EvtCd>{{EVENT_CODE}}</EvtCd><EvtParam>{{PARTICIPANT_RTN}}</EvtParam><EvtTm>{{EVENT_TIME}}</EvtTm><BizMsgIdr>{{BIZ_MSG_ID}}</BizMsgIdr><MmbId>{{SENDER_RTN}}</MmbId>',
                 event_code: 'FPON',
-                sender_rtn: '721160232'
+                sender_rtn: '721160232',
+                participant_rtn: '011054317'
             },
             res: {},
             logger: { info: jest.fn() }
@@ -83,12 +84,12 @@ describe('03_xml_placeholders_replace', () => {
         expect(container.req.xml_content).toContain('<EvtCd>FPON</EvtCd>');
 
         //
-        //  Verify RTN replaced
+        //  Verify participant RTN replaced in EvtParam
         //
-        expect(container.req.xml_content).toContain('<EvtParam>721160232</EvtParam>');
+        expect(container.req.xml_content).toContain('<EvtParam>011054317</EvtParam>');
 
         //
-        //  Verify RTN replaced in MmbId too
+        //  Verify sender RTN replaced in MmbId
         //
         expect(container.req.xml_content).toContain('<MmbId>721160232</MmbId>');
 
@@ -109,9 +110,10 @@ describe('03_xml_placeholders_replace', () => {
         //
         let container = {
             req: {
-                xml_template: '<EvtCd>{{EVENT_CODE}}</EvtCd><EvtParam>{{SENDER_RTN}}</EvtParam><EvtTm>{{EVENT_TIME}}</EvtTm><BizMsgIdr>{{BIZ_MSG_ID}}</BizMsgIdr>',
+                xml_template: '<EvtCd>{{EVENT_CODE}}</EvtCd><EvtParam>{{PARTICIPANT_RTN}}</EvtParam><EvtTm>{{EVENT_TIME}}</EvtTm><BizMsgIdr>{{BIZ_MSG_ID}}</BizMsgIdr>',
                 event_code: 'FPOF',
-                sender_rtn: '999999999'
+                sender_rtn: '999999999',
+                participant_rtn: '011054317'
             },
             res: {},
             logger: { info: jest.fn() }
@@ -139,9 +141,10 @@ describe('03_xml_placeholders_replace', () => {
         //
         let container = {
             req: {
-                xml_template: '<EvtTm>{{EVENT_TIME}}</EvtTm><EvtCd>{{EVENT_CODE}}</EvtCd><EvtParam>{{SENDER_RTN}}</EvtParam><BizMsgIdr>{{BIZ_MSG_ID}}</BizMsgIdr>',
+                xml_template: '<EvtTm>{{EVENT_TIME}}</EvtTm><EvtCd>{{EVENT_CODE}}</EvtCd><EvtParam>{{PARTICIPANT_RTN}}</EvtParam><BizMsgIdr>{{BIZ_MSG_ID}}</BizMsgIdr>',
                 event_code: 'FPON',
-                sender_rtn: '721160232'
+                sender_rtn: '721160232',
+                participant_rtn: '011054317'
             },
             res: {},
             logger: { info: jest.fn() }
@@ -178,9 +181,10 @@ describe('03_xml_placeholders_replace', () => {
         //
         let container = {
             req: {
-                xml_template: '<BizMsgIdr>{{BIZ_MSG_ID}}</BizMsgIdr><EvtCd>{{EVENT_CODE}}</EvtCd><EvtParam>{{SENDER_RTN}}</EvtParam><EvtTm>{{EVENT_TIME}}</EvtTm>',
+                xml_template: '<BizMsgIdr>{{BIZ_MSG_ID}}</BizMsgIdr><EvtCd>{{EVENT_CODE}}</EvtCd><EvtParam>{{PARTICIPANT_RTN}}</EvtParam><EvtTm>{{EVENT_TIME}}</EvtTm>',
                 event_code: 'FPON',
-                sender_rtn: '721160232'
+                sender_rtn: '721160232',
+                participant_rtn: '011054317'
             },
             res: {},
             logger: { info: jest.fn() }
