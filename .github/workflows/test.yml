@@ -1,3 +1,9 @@
+# Executes the full Jest test suite with coverage reporting.
+# Prevents regressions by verifying all existing functionality still works.
+#
+# Compliance: PCI DSS 6.3 (develop software securely), PCI DSS 6.4.5.3 (functionality testing),
+# SOC 2 CC8 (change management).
+
 name: "Run Tests"
 
 on:
@@ -12,16 +18,17 @@ jobs:
 
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: "Setup Node.js"
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
+          cache: 'npm'
 
       - name: "Install dependencies"
         run: |
-          npm install
+          npm ci
 
       - name: "Run Jest"
         run: |

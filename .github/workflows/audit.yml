@@ -1,3 +1,9 @@
+# Scans production npm dependencies for known security vulnerabilities.
+# Fails the PR if any dependency has a moderate or higher severity CVE.
+#
+# Compliance: PCI DSS 6.1 (identify vulnerabilities), PCI DSS 6.2 (patch known vulnerabilities),
+# SOC 2 CC7 (system operations monitoring).
+
 name: "Run Dependencies Audit"
 
 on:
@@ -12,16 +18,17 @@ jobs:
 
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: "Setup Node.js"
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
+          cache: 'npm'
 
       - name: "Install dependencies"
         run: |
-          npm install
+          npm ci
 
       - name: "Run npm audit"
         run: |

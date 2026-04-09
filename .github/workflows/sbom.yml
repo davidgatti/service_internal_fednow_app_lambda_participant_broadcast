@@ -1,0 +1,43 @@
+# Generates a Software Bill of Materials (SBOM) in CycloneDX format.
+# Lists every production dependency with versions, licenses, and hashes.
+# The SBOM is uploaded as a GitHub artifact and retained for 90 days.
+#
+# Compliance: PCI DSS 6.1 (identify vulnerabilities), PCI DSS 6.3 (secure development),
+# SOC 2 CC7 (system operations), Executive Order 14028 (SBOM requirement).
+
+name: "Generate SBOM"
+
+on:
+  pull_request:
+    branches:
+      - production
+
+jobs:
+  sbom:
+    name: "check"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: "Install dependencies"
+        run: |
+          npm ci
+
+      - name: "Generate SBOM"
+        run: |
+          npx @cyclonedx/cyclonedx-npm --output-file sbom.json --omit dev
+
+      - name: "Upload SBOM artifact"
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90

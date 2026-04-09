@@ -1,3 +1,9 @@
+# Enforces code style and formatting rules using ESLint.
+# Catches syntax errors, anti-patterns, and style inconsistencies before merge.
+#
+# Compliance: PCI DSS 6.3 (develop software securely), PCI DSS 6.3.2 (code reviews),
+# SOC 2 CC8 (change management).
+
 name: "Run Lint"
 
 on:
@@ -12,16 +18,17 @@ jobs:
 
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: "Setup Node.js"
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
+          cache: 'npm'
 
       - name: "Install dependencies"
         run: |
-          npm install
+          npm ci
 
       - name: "Run ESLint"
         run: |

@@ -3,7 +3,7 @@
     "lint": "eslint --fix .",
     "test": "jest --runInBand",
     "test:coverage": "jest --coverage --forceExit",
-    "tool:upgrade": "npx npm-check-updates -u && npm install && npm install -g npm@latest && npm run lint && npm run test",
+    "tool:upgrade": "npx npm-check-updates -u && npm install && npm audit fix && npm install -g npm@latest && npm run lint && npm run test",
     "locally": "env $(cat .env) node -e \"require('./.loader.js')\""
   },
   "devDependencies": {

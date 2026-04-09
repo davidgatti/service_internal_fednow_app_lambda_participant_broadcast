@@ -1,0 +1,31 @@
+# Verifies that package-lock.json is in sync with package.json.
+# Ensures builds are reproducible — every environment installs the exact same versions.
+#
+# Compliance: PCI DSS 6.4 (change control processes), SOC 2 CC8 (change management).
+
+name: "Run Lockfile Integrity"
+
+on:
+  pull_request:
+    branches:
+      - production
+
+jobs:
+  lockfile:
+    name: "check"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: "Verify lockfile is up to date"
+        run: |
+          npm ci --ignore-scripts
+          git diff --exit-code package-lock.json
