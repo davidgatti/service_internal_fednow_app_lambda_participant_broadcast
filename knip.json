@@ -13,7 +13,6 @@
         "pino-pretty"
     ],
     "ignoreBinaries": [
-        "lint-staged",
         "npm-check-updates"
     ],
     "rules": {

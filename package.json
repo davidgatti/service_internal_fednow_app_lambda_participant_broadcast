@@ -8,6 +8,9 @@
     "test": "jest --runInBand --coverage",
     "tool:upgrade": "npx npm-check-updates -u && npm install && npm audit fix && npm install -g npm@latest && npm run lint && npm run test"
   },
+  "overrides": {
+    "smol-toml": ">=1.6.1"
+  },
   "engines": {
     "node": ">=24.0.0",
     "npm": ">=11.0.0"
