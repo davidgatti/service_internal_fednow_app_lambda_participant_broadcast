@@ -1,8 +1,7 @@
 module.exports = {
   cache: false,
   cacheDirectory: "<rootDir>/.tmp/jest/cache",
-  passWithNoTests: true,
-  coverageReporters: ['text']
+  coverageReporters: ["text"],
 };
 
 // Override os.tmpdir so that Jest HasteMap writes temp files under .tmp
@@ -11,6 +10,6 @@ module.exports = {
   const os = require("os");
   const path = require("path");
 
-
+   
   os.tmpdir = () => path.join(__dirname, ".tmp", "jest", "tmp");
 }
