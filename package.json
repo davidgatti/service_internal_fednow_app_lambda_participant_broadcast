@@ -7,8 +7,8 @@
     "locally": "env $(cat .env) node -e \"require('./.loader.js')\""
   },
   "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
   },
   "lint-staged": {
     "./**/*.{js,jsx,ts,tsx}": [
