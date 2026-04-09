@@ -1,4 +1,4 @@
-# Enforces code style and formatting rules using ESLint.
+# Enforces code style, markdown formatting, and dead code detection.
 # Catches syntax errors, anti-patterns, and style inconsistencies before merge.
 #
 # Compliance: PCI DSS 6.3 (develop software securely), PCI DSS 6.3.2 (code reviews),
@@ -12,8 +12,8 @@ on:
       - production
 
 jobs:
-  lint:
-    name: "check"
+  eslint:
+    name: "eslint"
     runs-on: ubuntu-latest
 
     steps:
@@ -27,9 +27,47 @@ jobs:
           cache: 'npm'
 
       - name: "Install dependencies"
-        run: |
-          npm ci
+        run: npm ci
 
       - name: "Run ESLint"
-        run: |
-          npx eslint .
+        run: npx eslint .
+
+  markdown:
+    name: "markdown"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: "Install dependencies"
+        run: npm ci
+
+      - name: "Run markdownlint"
+        run: npx markdownlint-cli2 "**/*.md" "!node_modules"
+
+  knip:
+    name: "knip"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: "Install dependencies"
+        run: npm ci
+
+      - name: "Run knip"
+        run: npx knip
