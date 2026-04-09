@@ -6,17 +6,6 @@
     "tool:upgrade": "npx npm-check-updates -u && npm install && npm audit fix && npm install -g npm@latest && npm run lint && npm run test",
     "locally": "env $(cat .env) node -e \"require('./.loader.js')\""
   },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@eslint/markdown": "^8.0.1",
-    "eslint": "^10.1.0",
-    "eslint-plugin-rulesdir": "^0.2.2",
-    "globals": "^17.4.0",
-    "husky": "^9.1.7",
-    "jest": "^30.3.0",
-    "knip": "^6.1.1",
-    "markdownlint-cli2": "^0.22.0"
-  },
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
@@ -28,7 +17,18 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.1020.0",
-    "pino": "^10.3.1",
+    "pino": "^10.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@eslint/markdown": "^8.0.1",
+    "eslint": "^10.1.0",
+    "eslint-plugin-rulesdir": "^0.2.2",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "jest": "^30.3.0",
+    "knip": "^6.1.1",
+    "markdownlint-cli2": "^0.22.0",
     "pino-pretty": "^13.1.3"
   }
 }
