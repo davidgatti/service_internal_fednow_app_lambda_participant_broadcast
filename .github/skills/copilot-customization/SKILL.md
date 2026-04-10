@@ -77,10 +77,12 @@ description: 'What it does. Use when: trigger1, trigger2, trigger3.'
 ```
 
 Rules:
+
 - `name`: 1-64 chars, lowercase alphanumeric + hyphens only, must match folder name
 - `description`: Max 1024 chars. This is the discovery surface — if trigger words aren't here, the agent won't find it
 
 Optional frontmatter fields:
+
 - `argument-hint`: Hint shown for slash invocation
 - `user-invocable: false`: Hide from slash commands (still auto-loaded)
 - `disable-model-invocation: true`: Only via slash command (not auto-loaded)
@@ -112,6 +114,7 @@ applyTo: "**/*.sql"           # Optional: auto-attach for matching files
 ```
 
 Discovery modes:
+
 - `description` only → on-demand (agent decides relevance)
 - `applyTo` only → explicit (file glob match)
 - Both → both triggers active

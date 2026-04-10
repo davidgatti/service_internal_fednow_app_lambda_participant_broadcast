@@ -42,6 +42,7 @@ Each added segment narrows the visible set. This works in any alphabetically sor
 `${StackName}-{service}-{resource}-{metric}-{condition}`
 
 Examples:
+
 - `sqs-intake-age-high`, `sqs-intake-depth-high`
 - `lambda-intake-errors`, `lambda-intake-throttles`
 - `ecs-inbound-cpu-high`, `ecs-inbound-memory-high`

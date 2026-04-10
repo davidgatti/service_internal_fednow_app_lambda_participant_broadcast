@@ -58,6 +58,7 @@ Execute in numeric order, pass state via `container` object.
 Location: `.templates/fednow_participant_broadcast.xml`
 
 Placeholders:
+
 - `{{EVENT_CODE}}` — FPON or FPOF
 - `{{SENDER_RTN}}` — 9-digit participant routing transit number
 - `{{EVENT_TIME}}` — ISO 8601 timestamp with timezone offset
